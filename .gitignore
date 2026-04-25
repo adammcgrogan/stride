@@ -1,0 +1,15 @@
+# Compiled binary
+stride
+
+# Environment — never commit secrets
+.env
+
+# SQLite database
+*.db
+
+# IDE
+.idea/
+.vscode/
+
+# macOS
+.DS_Store
