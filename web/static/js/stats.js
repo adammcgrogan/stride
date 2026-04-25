@@ -34,7 +34,7 @@ function updateSummaryCards(activities) {
         : '—';
 }
 
-// ── sport table ───────────────────────────────────────────────────────────────
+// ── sport bar list ────────────────────────────────────────────────────────────
 
 function updateSportTable(activities) {
     const bySport = {};
@@ -48,21 +48,32 @@ function updateSportTable(activities) {
     }
 
     const rows = Object.entries(bySport).sort((a, b) => b[1].count - a[1].count);
-    document.querySelector('#sport-table tbody').innerHTML =
-        rows.map(([sport, stats]) =>
-            `<tr>
-                <td>${sport}</td>
-                <td>${stats.count}</td>
-                <td>${fmtKm(stats.distance)}</td>
-                <td>${fmtTime(stats.time)}</td>
-            </tr>`
-        ).join('') || '<tr><td colspan="4">No activities</td></tr>';
+    const maxCount = rows.length ? rows[0][1].count : 1;
+    const container = document.getElementById('sport-bars');
+
+    if (!rows.length) {
+        container.innerHTML = '<p style="color:var(--muted);font-size:.875rem">No activities</p>';
+        return;
+    }
+
+    container.innerHTML = rows.map(([sport, stats]) => {
+        const pct = (stats.count / maxCount * 100).toFixed(1);
+        return `<div class="sport-bar-row">
+            <span class="sport-bar-label">${sport}</span>
+            <div class="sport-bar-track"><div class="sport-bar-fill" style="width:${pct}%"></div></div>
+            <span class="sport-bar-meta">
+                <strong>${stats.count}</strong>
+                <span>${fmtKm(stats.distance)}</span>
+                <span>${fmtTime(stats.time)}</span>
+            </span>
+        </div>`;
+    }).join('');
 }
 
 // ── chart ─────────────────────────────────────────────────────────────────────
 
 const xAxisStyle = {
-    style: { colors: '#9ca3af', fontSize: '12px' },
+    style: { colors: '#94a3b8', fontSize: '11px' },
     axisBorder: { show: false },
     axisTicks:  { show: false },
 };
@@ -74,15 +85,16 @@ const BASE_CHART_OPTIONS = {
         fontFamily: 'Inter, system-ui, sans-serif',
         toolbar: { show: false },
         animations: { enabled: false },
+        background: 'transparent',
     },
-    plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
-    colors:      ['#FC4C02', '#9ca3af'],
+    plotOptions: { bar: { borderRadius: 5, columnWidth: '55%' } },
+    colors:      ['#FC4C02', '#cbd5e1'],
     stroke:      { width: [0, 2], curve: 'smooth' },
     legend:      { show: false },
     dataLabels:  { enabled: false },
-    grid:        { borderColor: '#e5e7eb', strokeDashArray: 3, xaxis: { lines: { show: false } } },
-    yaxis:       { labels: { formatter: v => v.toFixed(0) + ' km', style: { colors: '#9ca3af', fontSize: '12px' } } },
-    tooltip:     { enabledOnSeries: [0], y: { formatter: v => v.toFixed(1) + ' km' } },
+    grid:        { borderColor: 'rgba(15,17,23,.06)', strokeDashArray: 4, xaxis: { lines: { show: false } } },
+    yaxis:       { labels: { formatter: v => v.toFixed(0) + ' km', style: { colors: '#94a3b8', fontSize: '11px' } } },
+    tooltip:     { enabledOnSeries: [0], y: { formatter: v => v.toFixed(1) + ' km' }, theme: 'dark' },
 };
 
 // Groups activities into a {key → totalKm} map at the given granularity.
@@ -178,23 +190,7 @@ function updateChart(activities, dateFrom, dateTo, period) {
     apexChart.render();
 }
 
-// ── render ────────────────────────────────────────────────────────────────────
-
-function currentPeriod() {
-    const btn = document.querySelector('.period-btn.active');
-    return btn ? btn.dataset.period : null;
-}
-
-function render() {
-    const dateFrom  = document.getElementById('date-from').value || null;
-    const dateTo    = document.getElementById('date-to').value   || null;
-    const activities = applyFilters();
-    updateSummaryCards(activities);
-    updateSportTable(activities);
-    updateChart(activities, dateFrom, dateTo, currentPeriod());
-}
-
-// ── event wiring ─────────────────────────────────────────────────────────────
+// ── period buttons ────────────────────────────────────────────────────────────
 
 function setActivePeriod(period) {
     document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
@@ -205,13 +201,31 @@ function setActivePeriod(period) {
     document.getElementById('date-to').value   = to;
 }
 
+// ── render ────────────────────────────────────────────────────────────────────
+
+function render() {
+    const dateFrom   = document.getElementById('date-from').value || null;
+    const dateTo     = document.getElementById('date-to').value   || null;
+    const activities = applyFilters();
+    updateSummaryCards(activities);
+    updateSportTable(activities);
+    updateChart(activities, dateFrom, dateTo, location.hash.slice(1) || null);
+}
+
+// ── event wiring ─────────────────────────────────────────────────────────────
+
 document.querySelectorAll('.period-btn').forEach(btn => {
-    btn.addEventListener('click', () => { setActivePeriod(btn.dataset.period); render(); });
+    btn.addEventListener('click', () => {
+        location.hash = btn.dataset.period;
+        setActivePeriod(btn.dataset.period);
+        render();
+    });
 });
 
 ['date-from', 'date-to'].forEach(id => {
     document.getElementById(id).addEventListener('change', () => {
-        document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
+        history.replaceState(null, '', location.pathname);
+        setActivePeriod(null);
         render();
     });
 });
@@ -234,6 +248,6 @@ document.getElementById('sport-filter').addEventListener('change', render);
         select.appendChild(option);
     }
 
-    setActivePeriod('month');
+    setActivePeriod(location.hash.slice(1) || 'week');
     render();
 })();

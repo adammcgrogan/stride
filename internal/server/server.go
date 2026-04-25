@@ -31,7 +31,15 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("/activities/", h.ActivityDetail)
 	s.mux.HandleFunc("/activities", h.Activities)
 	s.mux.HandleFunc("/stats", h.Stats)
+	s.mux.HandleFunc("/records", h.Records)
+	s.mux.HandleFunc("/predict", h.Predict)
+	s.mux.HandleFunc("/fitness", h.Fitness)
+	s.mux.HandleFunc("GET /goals", h.Goals)
+	s.mux.HandleFunc("POST /goals", h.CreateGoal)
+	s.mux.HandleFunc("DELETE /goals/{id}", h.DeleteGoal)
 	s.mux.HandleFunc("/api/activities", h.APIActivities)
+	s.mux.HandleFunc("/api/sync-status", h.SyncStatus)
+	s.mux.HandleFunc("/sync", h.SyncNow)
 	s.mux.HandleFunc("/", h.Dashboard)
 }
 

@@ -1,7 +1,11 @@
 {{define "content"}}
+<div class="overview-header">
+    <h1>Stats</h1>
+</div>
+
 <div class="stats-toolbar">
     <div class="filter-group">
-        <button class="period-btn active" data-period="week">Week</button>
+        <button class="period-btn" data-period="week">Week</button>
         <button class="period-btn" data-period="month">Month</button>
         <button class="period-btn" data-period="year">Year</button>
         <button class="period-btn" data-period="all">All time</button>
@@ -41,19 +45,19 @@
     </div>
 </div>
 
-<div class="overview-grid">
-    <section class="card">
+<section class="card">
+    <div class="card-header">
         <h2 id="chart-label">Distance over time</h2>
-        <div id="statsChart"></div>
-    </section>
-    <section class="card">
+    </div>
+    <div id="statsChart"></div>
+</section>
+
+<section class="card">
+    <div class="card-header">
         <h2>By Sport</h2>
-        <table id="sport-table">
-            <thead><tr><th>Sport</th><th>Count</th><th>Distance</th><th>Time</th></tr></thead>
-            <tbody></tbody>
-        </table>
-    </section>
-</div>
+    </div>
+    <div id="sport-bars" class="sport-bar-list"></div>
+</section>
 
 <script src="/static/js/stats.js"></script>
 {{end}}

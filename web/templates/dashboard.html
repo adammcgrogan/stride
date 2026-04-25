@@ -32,12 +32,16 @@
 
 <div class="overview-grid">
     <section class="card">
-        <h2>Weekly Distance</h2>
+        <div class="card-header">
+            <h2>Weekly Distance</h2>
+        </div>
         <div id="weeklyChart"></div>
     </section>
 
     <section class="card">
-        <h2>By Sport</h2>
+        <div class="card-header">
+            <h2>By Sport</h2>
+        </div>
         <table>
             <thead>
                 <tr><th>Sport</th><th>Count</th><th>Distance</th></tr>
@@ -56,7 +60,17 @@
 </div>
 
 <section class="card">
-    <h2>Recent Activities</h2>
+    <div class="card-header">
+        <h2>Activity Heatmap</h2>
+    </div>
+    <div id="heatmap-svg" style="overflow-x:auto;"></div>
+</section>
+
+<section class="card">
+    <div class="card-header">
+        <h2>Recent Activities</h2>
+        <a class="view-all" href="/activities">View all &rarr;</a>
+    </div>
     <table>
         <thead>
             <tr><th>Name</th><th>Sport</th><th>Distance</th><th>Date</th></tr>
@@ -74,10 +88,10 @@
         {{end}}
         </tbody>
     </table>
-    <a class="view-all" href="/activities">View all activities &rarr;</a>
 </section>
 
 <script src="/static/js/dashboard.js"></script>
+<script src="/static/js/heatmap.js"></script>
 <script>
 (function() {
     const secs = parseInt(document.getElementById('moving-time').dataset.seconds, 10);

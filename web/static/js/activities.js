@@ -3,6 +3,14 @@ let allActivities = [];
 let filtered = [];
 let currentPage = 1;
 
+function sportPillClass(sport) {
+    const s = sport.toLowerCase();
+    if (s.includes('run') || s.includes('walk') || s.includes('hike')) return 'sport-pill--running';
+    if (s.includes('ride') || s.includes('cycl') || s.includes('bike')) return 'sport-pill--cycling';
+    if (s.includes('swim')) return 'sport-pill--swimming';
+    return 'sport-pill--default';
+}
+
 function escapeHtml(str) {
     return str
         .replace(/&/g, '&amp;')
@@ -62,7 +70,7 @@ function renderTable() {
     tbody.innerHTML = pageItems.map(activity => `
         <tr>
             <td><a href="/activities/${activity.ID}">${escapeHtml(activity.Name)}</a></td>
-            <td>${escapeHtml(activity.SportType)}</td>
+            <td><span class="sport-pill ${sportPillClass(activity.SportType)}">${escapeHtml(activity.SportType)}</span></td>
             <td>${fmtKm(activity.Distance)}</td>
             <td>${fmtTime(activity.MovingTime)}</td>
             <td>${Math.round(activity.TotalElevationGain)} m</td>
@@ -121,12 +129,17 @@ function setActivePeriod(period) {
 }
 
 document.querySelectorAll('.period-btn').forEach(btn => {
-    btn.addEventListener('click', () => { setActivePeriod(btn.dataset.period); render(); });
+    btn.addEventListener('click', () => {
+        location.hash = btn.dataset.period;
+        setActivePeriod(btn.dataset.period);
+        render();
+    });
 });
 
 ['date-from', 'date-to'].forEach(id => {
     document.getElementById(id).addEventListener('change', () => {
-        document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+        history.replaceState(null, '', location.pathname);
+        setActivePeriod(null);
         render();
     });
 });
@@ -150,5 +163,6 @@ document.getElementById('act-search').addEventListener('input', render);
         select.appendChild(option);
     }
 
+    setActivePeriod(location.hash.slice(1) || 'all');
     render();
 })();

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"os"
 	"path/filepath"
+	"strings"
 
 	_ "modernc.org/sqlite"
 )
@@ -29,6 +30,9 @@ func New(path string) (*DB, error) {
 func Migrate(database *DB) error {
 	for _, statement := range migrations {
 		if _, err := database.Exec(statement); err != nil {
+			if strings.Contains(err.Error(), "duplicate column name") {
+				continue
+			}
 			return err
 		}
 	}
@@ -48,6 +52,7 @@ var migrations = []string{
 		refresh_token TEXT,
 		expires_at    INTEGER
 	)`,
+	`ALTER TABLE athletes ADD COLUMN last_manual_sync_at INTEGER NOT NULL DEFAULT 0`,
 	`CREATE TABLE IF NOT EXISTS activities (
 		id                   INTEGER PRIMARY KEY,
 		athlete_id           INTEGER NOT NULL REFERENCES athletes(id),
@@ -70,5 +75,15 @@ var migrations = []string{
 		kilojoules           REAL,
 		suffer_score         REAL,
 		summary_polyline     TEXT
+	)`,
+	`CREATE TABLE IF NOT EXISTS goals (
+		id         INTEGER PRIMARY KEY AUTOINCREMENT,
+		athlete_id INTEGER NOT NULL REFERENCES athletes(id),
+		title      TEXT NOT NULL,
+		metric     TEXT NOT NULL,
+		sport_type TEXT NOT NULL DEFAULT '',
+		period     TEXT NOT NULL,
+		target     REAL NOT NULL,
+		created_at TEXT NOT NULL DEFAULT (datetime('now'))
 	)`,
 }

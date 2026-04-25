@@ -31,6 +31,7 @@ async function renderWeeklyChart() {
             fontFamily: 'Inter, system-ui, sans-serif',
             toolbar: { show: false },
             animations: { enabled: false },
+            background: 'transparent',
         },
         series: [
             { name: 'Distance', type: 'bar',  data: distanceData },
@@ -39,20 +40,20 @@ async function renderWeeklyChart() {
         xaxis: {
             categories,
             tickAmount: 8,
-            labels: { rotate: -30, style: { colors: '#9ca3af', fontSize: '11px' } },
+            labels: { rotate: -30, style: { colors: '#94a3b8', fontSize: '11px' } },
             axisBorder: { show: false },
             axisTicks:  { show: false },
         },
         yaxis: {
-            labels: { formatter: v => v.toFixed(0) + ' km', style: { colors: '#9ca3af', fontSize: '12px' } },
+            labels: { formatter: v => v.toFixed(0) + ' km', style: { colors: '#94a3b8', fontSize: '11px' } },
         },
-        colors:      ['#FC4C02', '#9ca3af'],
+        colors:      ['#FC4C02', '#cbd5e1'],
         stroke:      { width: [0, 2], curve: 'smooth' },
         legend:      { show: false },
-        tooltip:     { enabledOnSeries: [0], y: { formatter: v => v.toFixed(1) + ' km' } },
-        plotOptions: { bar: { borderRadius: 4, columnWidth: '60%' } },
+        tooltip:     { enabledOnSeries: [0], y: { formatter: v => v.toFixed(1) + ' km' }, theme: 'dark' },
+        plotOptions: { bar: { borderRadius: 5, columnWidth: '58%' } },
         dataLabels:  { enabled: false },
-        grid: { borderColor: '#e5e7eb', strokeDashArray: 3, xaxis: { lines: { show: false } } },
+        grid: { borderColor: 'rgba(15,17,23,.06)', strokeDashArray: 4, xaxis: { lines: { show: false } } },
     }).render();
 }
 

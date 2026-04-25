@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"time"
 
 	"stride/internal/config"
 	"stride/internal/db"
@@ -23,6 +24,31 @@ func New(cfg *config.Config, db *db.DB, syncer *sync.Syncer) *Handler {
 
 var templateFuncs = template.FuncMap{
 	"divFloat": func(a, b float64) float64 { return a / b },
+	"fmtKm": func(meters float64) string {
+		return fmt.Sprintf("%.1f", meters/1000)
+	},
+	"formatRunTime": func(totalSeconds int) string {
+		if totalSeconds == 0 {
+			return "—"
+		}
+		h := totalSeconds / 3600
+		m := (totalSeconds % 3600) / 60
+		s := totalSeconds % 60
+		if h > 0 {
+			return fmt.Sprintf("%d:%02d:%02d", h, m, s)
+		}
+		return fmt.Sprintf("%d:%02d", m, s)
+	},
+	"formatDate": func(dateStr string) string {
+		if len(dateStr) < 10 {
+			return dateStr
+		}
+		t, err := time.Parse("2006-01-02", dateStr[:10])
+		if err != nil {
+			return dateStr[:10]
+		}
+		return t.Format("Jan 2, 2006")
+	},
 	"formatDuration": func(totalSeconds int) string {
 		if totalSeconds == 0 {
 			return "—"
