@@ -1,0 +1,98 @@
+{{define "content"}}
+<div class="overview-header">
+    <div>
+        <h1>Fitness &amp; Freshness</h1>
+        <p class="subtext">See whether your body is getting fitter, carrying fatigue, or ready to race.</p>
+    </div>
+</div>
+
+<div id="no-data" class="card empty-state" style="display:none">
+    No activities yet — complete some activities and sync to see your fitness data.
+</div>
+
+<div id="fitness-content" style="display:none">
+
+    <!-- Full-width hero: Form today -->
+    <div class="fitness-hero" id="tsb-hero">
+        <div class="fitness-hero-main">
+            <span class="fitness-hero-eyebrow">Form Today</span>
+            <span class="fitness-hero-value" id="tsb-value">—</span>
+            <span class="fitness-hero-zone" id="tsb-zone">—</span>
+        </div>
+        <div class="fitness-hero-stats">
+            <div class="fitness-hero-stat">
+                <span class="fitness-hero-stat-label">Fitness</span>
+                <span class="fitness-hero-stat-value" id="ctl-value">—</span>
+                <span class="fitness-hero-stat-sub">Past 6 weeks</span>
+            </div>
+            <div class="fitness-hero-stat">
+                <span class="fitness-hero-stat-label">Fatigue</span>
+                <span class="fitness-hero-stat-value" id="atl-value">—</span>
+                <span class="fitness-hero-stat-sub">Past week</span>
+            </div>
+        </div>
+    </div>
+
+    <section class="card">
+        <div class="fitness-chart-header">
+            <h2>Training load over time</h2>
+            <div class="filter-group">
+                <button class="period-btn" data-period="3m">3 months</button>
+                <button class="period-btn" data-period="6m">6 months</button>
+                <button class="period-btn active" data-period="1y">1 year</button>
+                <button class="period-btn" data-period="all">All time</button>
+            </div>
+        </div>
+        <div id="fitnessChart"></div>
+        <div class="fitness-legend">
+            <span class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span>Fitness</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>Fatigue</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#22c55e"></span>Form</span>
+        </div>
+    </section>
+
+    <section class="card fitness-explainer">
+        <h2>How to read this</h2>
+        <p class="predictor-hint">
+            Think of training like a bank account. Every workout deposits fitness but also charges fatigue.
+            Your form on any given day is roughly how much fitness you have left after paying off the fatigue.
+        </p>
+        <div class="explainer-grid">
+            <div class="explainer-item">
+                <span class="explainer-dot" style="background:#3b82f6"></span>
+                <div>
+                    <strong>Fitness</strong> — How much training you have banked over the past six weeks.
+                    It rises slowly with consistent work and drops when you take time off.
+                    A steady upward trend means you are genuinely getting fitter.
+                </div>
+            </div>
+            <div class="explainer-item">
+                <span class="explainer-dot" style="background:#ef4444"></span>
+                <div>
+                    <strong>Fatigue</strong> — How hard your body has been working in the past seven days.
+                    It spikes after a big week and recovers quickly with rest.
+                    When Fatigue is well above Fitness, you are digging a hole.
+                </div>
+            </div>
+            <div class="explainer-item">
+                <span class="explainer-dot" style="background:#22c55e"></span>
+                <div>
+                    <strong>Form</strong> — Fitness minus Fatigue. This is your readiness to perform right now.
+                    Negative means you are carrying tiredness. Positive means you have freshened up.
+                    Taper before a race to push Form into the +10 to +25 window.
+                </div>
+            </div>
+        </div>
+        <div class="zone-table">
+            <div class="zone-row"><span class="zone-chip zone-overreach">Form &lt; −10</span><span><strong>Overreaching</strong> — You have been pushing too hard. Rest now or risk illness and injury.</span></div>
+            <div class="zone-row"><span class="zone-chip zone-fatigued">−10 to 0</span><span><strong>Fatigued</strong> — Normal during a hard training block. Do not expect personal bests right now.</span></div>
+            <div class="zone-row"><span class="zone-chip zone-fresh">0 to +10</span><span><strong>Fresh</strong> — Good balance of fitness and recovery. A solid state for hard sessions.</span></div>
+            <div class="zone-row"><span class="zone-chip zone-peak">+10 to +25</span><span><strong>Race-ready</strong> — Peak form. Schedule your A-race or time trial here.</span></div>
+            <div class="zone-row"><span class="zone-chip zone-detrained">&gt; +25</span><span><strong>Detrained</strong> — You have been resting too long. Fitness is beginning to slip away.</span></div>
+        </div>
+    </section>
+
+</div>
+
+<script src="/static/js/fitness.js"></script>
+{{end}}
