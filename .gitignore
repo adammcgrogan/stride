@@ -1,5 +1,5 @@
-# Compiled binary
-stride
+# Compiled binary (root-level only)
+/stride
 
 # Environment — never commit secrets
 .env
