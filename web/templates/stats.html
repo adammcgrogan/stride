@@ -1,0 +1,59 @@
+{{define "content"}}
+<div class="stats-toolbar">
+    <div class="filter-group">
+        <button class="period-btn active" data-period="week">Week</button>
+        <button class="period-btn" data-period="month">Month</button>
+        <button class="period-btn" data-period="year">Year</button>
+        <button class="period-btn" data-period="all">All time</button>
+    </div>
+    <div class="filter-group">
+        <input type="date" id="date-from" title="From">
+        <span class="date-sep">—</span>
+        <input type="date" id="date-to" title="To">
+    </div>
+    <div class="filter-group">
+        <select id="sport-filter">
+            <option value="">All sports</option>
+        </select>
+    </div>
+</div>
+
+<div class="stat-grid" id="stat-cards">
+    <div class="stat-card">
+        <span class="stat-label">Activities</span>
+        <span class="stat-value" id="s-count">—</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Distance</span>
+        <span class="stat-value" id="s-distance">—</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Elevation</span>
+        <span class="stat-value" id="s-elevation">—</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Moving Time</span>
+        <span class="stat-value" id="s-time">—</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Avg Distance</span>
+        <span class="stat-value" id="s-avg">—</span>
+    </div>
+</div>
+
+<div class="overview-grid">
+    <section class="card">
+        <h2 id="chart-label">Distance over time</h2>
+        <div id="statsChart"></div>
+    </section>
+    <section class="card">
+        <h2>By Sport</h2>
+        <table id="sport-table">
+            <thead><tr><th>Sport</th><th>Count</th><th>Distance</th><th>Time</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </section>
+</div>
+
+<script src="/static/js/stats.js"></script>
+{{end}}

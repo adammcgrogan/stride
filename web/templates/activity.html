@@ -1,0 +1,56 @@
+{{define "content"}}
+<div class="overview-header">
+    <h1>{{.Name}}</h1>
+    <span class="year-badge">{{.SportType}}</span>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <span class="stat-label">Distance</span>
+        <span class="stat-value">{{printf "%.2f" (divFloat .Distance 1000)}} <small>km</small></span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Moving Time</span>
+        <span class="stat-value">{{formatDuration .MovingTime}}</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Pace</span>
+        <span class="stat-value">{{formatPace .AverageSpeed}}</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Elevation</span>
+        <span class="stat-value">{{printf "%.0f" .TotalElevationGain}} <small>m</small></span>
+    </div>
+</div>
+
+{{if .SummaryPolyline}}
+<section class="card" style="padding:0;overflow:hidden">
+    <div id="map" style="height:380px;border-radius:10px"></div>
+</section>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@mapbox/polyline@1.2.1/src/polyline.js"></script>
+<script>
+    const map = L.map('map');
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    const coords = polyline.decode("{{.SummaryPolyline}}");
+    const line = L.polyline(coords, {color: '#FC4C02', weight: 3}).addTo(map);
+    map.fitBounds(line.getBounds());
+</script>
+{{end}}
+
+<section class="card">
+    <h2>Details</h2>
+    <dl>
+        <dt>Date</dt>        <dd>{{slice .StartDateLocal 0 10}}</dd>
+        <dt>Avg HR</dt>      <dd>{{formatFloat .AverageHeartrate}} {{if gt .AverageHeartrate 0.0}}<small>bpm</small>{{end}}</dd>
+        <dt>Max HR</dt>      <dd>{{formatFloat .MaxHeartrate}} {{if gt .MaxHeartrate 0.0}}<small>bpm</small>{{end}}</dd>
+        <dt>Avg Cadence</dt> <dd>{{formatFloat .AverageCadence}} {{if gt .AverageCadence 0.0}}<small>rpm</small>{{end}}</dd>
+        <dt>Avg Power</dt>   <dd>{{formatFloat .AverageWatts}} {{if gt .AverageWatts 0.0}}<small>W</small>{{end}}</dd>
+        <dt>Calories</dt>    <dd>{{formatFloat .Kilojoules}} {{if gt .Kilojoules 0.0}}<small>kJ</small>{{end}}</dd>
+        <dt>Suffer Score</dt><dd>{{formatFloat .SufferScore}}</dd>
+    </dl>
+</section>
+{{end}}

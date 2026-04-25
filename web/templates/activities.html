@@ -1,0 +1,66 @@
+{{define "content"}}
+<div class="overview-header">
+    <h1>Activities</h1>
+    <span class="year-badge" id="act-badge">—</span>
+</div>
+
+<div class="stats-toolbar">
+    <div class="filter-group">
+        <input type="search" id="act-search" placeholder="Search activities…">
+    </div>
+    <div class="filter-group">
+        <button class="period-btn" data-period="week">Week</button>
+        <button class="period-btn" data-period="month">Month</button>
+        <button class="period-btn" data-period="year">Year</button>
+        <button class="period-btn active" data-period="all">All time</button>
+    </div>
+    <div class="filter-group">
+        <input type="date" id="date-from" title="From">
+        <span class="date-sep">—</span>
+        <input type="date" id="date-to" title="To">
+    </div>
+    <div class="filter-group">
+        <select id="sport-filter">
+            <option value="">All sports</option>
+        </select>
+    </div>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <span class="stat-label">Activities</span>
+        <span class="stat-value" id="s-count">—</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Distance</span>
+        <span class="stat-value" id="s-dist">—</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Elevation</span>
+        <span class="stat-value" id="s-elev">—</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Moving Time</span>
+        <span class="stat-value" id="s-time">—</span>
+    </div>
+</div>
+
+<section class="card">
+    <table id="act-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Sport</th>
+                <th>Distance</th>
+                <th>Time</th>
+                <th>Elevation</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div class="pagination" id="act-pagination"></div>
+</section>
+
+<script src="/static/js/activities.js"></script>
+{{end}}

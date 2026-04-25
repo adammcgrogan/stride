@@ -1,0 +1,89 @@
+{{define "content"}}
+<div class="overview-header">
+    <div>
+        <h1>{{.Athlete.Firstname}} {{.Athlete.Lastname}}</h1>
+        <p class="subtext">{{.Athlete.City}}{{if and .Athlete.City .Athlete.Country}}, {{end}}{{.Athlete.Country}}</p>
+    </div>
+    <div class="year-badge">{{.Stats.ThisYearActivities}} activities this year</div>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <span class="stat-label">Total Activities</span>
+        <span class="stat-value">{{.Stats.TotalActivities}}</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Total Distance</span>
+        <span class="stat-value">{{printf "%.0f" (divFloat .Stats.TotalDistance 1000)}} <small>km</small></span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Total Elevation</span>
+        <span class="stat-value">{{printf "%.0f" .Stats.TotalElevation}} <small>m</small></span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Moving Time</span>
+        <span class="stat-value" id="moving-time" data-seconds="{{.Stats.TotalMovingTime}}"></span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">This Year</span>
+        <span class="stat-value">{{printf "%.0f" (divFloat .Stats.ThisYearDistance 1000)}} <small>km</small></span>
+    </div>
+</div>
+
+<div class="overview-grid">
+    <section class="card">
+        <h2>Weekly Distance</h2>
+        <div id="weeklyChart"></div>
+    </section>
+
+    <section class="card">
+        <h2>By Sport</h2>
+        <table>
+            <thead>
+                <tr><th>Sport</th><th>Count</th><th>Distance</th></tr>
+            </thead>
+            <tbody>
+            {{range .Sports}}
+                <tr>
+                    <td>{{.SportType}}</td>
+                    <td>{{.Count}}</td>
+                    <td>{{printf "%.0f km" (divFloat .Distance 1000)}}</td>
+                </tr>
+            {{end}}
+            </tbody>
+        </table>
+    </section>
+</div>
+
+<section class="card">
+    <h2>Recent Activities</h2>
+    <table>
+        <thead>
+            <tr><th>Name</th><th>Sport</th><th>Distance</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+        {{range .Recent}}
+            <tr>
+                <td><a href="/activities/{{.ID}}">{{.Name}}</a></td>
+                <td>{{.SportType}}</td>
+                <td>{{printf "%.1f km" (divFloat .Distance 1000)}}</td>
+                <td>{{slice .StartDateLocal 0 10}}</td>
+            </tr>
+        {{else}}
+            <tr><td colspan="4">No activities yet — sync running in background.</td></tr>
+        {{end}}
+        </tbody>
+    </table>
+    <a class="view-all" href="/activities">View all activities &rarr;</a>
+</section>
+
+<script src="/static/js/dashboard.js"></script>
+<script>
+(function() {
+    const secs = parseInt(document.getElementById('moving-time').dataset.seconds, 10);
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    document.getElementById('moving-time').textContent = h + 'h ' + m + 'm';
+})();
+</script>
+{{end}}
