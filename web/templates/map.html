@@ -1,0 +1,37 @@
+{{define "content"}}
+<div class="overview-header">
+    <h1>Route Map</h1>
+</div>
+
+<div class="stats-toolbar">
+    <div class="filter-group">
+        <button class="period-btn active" data-view="lines">Routes</button>
+        <button class="period-btn" data-view="heatmap">Density</button>
+    </div>
+    <div class="filter-group">
+        <select id="sport-filter">
+            <option value="">All sports</option>
+        </select>
+    </div>
+    <div class="filter-group" id="color-by-group">
+        <select id="color-by">
+            <option value="default">Colour: Default</option>
+            <option value="recency">Colour: Recency</option>
+            <option value="pace">Colour: Pace</option>
+        </select>
+    </div>
+    <span id="route-count" style="font-size:.82rem;color:var(--muted)"></span>
+</div>
+
+<section class="card" style="padding:0;overflow:hidden;position:relative">
+    <div id="map" class="map-page-map"></div>
+    <div id="color-legend" class="color-legend" style="display:none">
+        <div class="legend-bar"></div>
+        <div class="legend-labels"><span id="legend-lo"></span><span id="legend-hi"></span></div>
+    </div>
+</section>
+
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css"/>
+<script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script>
+<script src="/static/js/map.js"></script>
+{{end}}

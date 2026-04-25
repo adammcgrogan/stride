@@ -199,6 +199,32 @@ main {
     letter-spacing: 0;
 }
 
+.consistency-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 0.6rem;
+}
+
+.consistency-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    width: 0;
+    transition: width 0.5s ease;
+}
+
+.stat-delta {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--muted);
+    margin-top: auto;
+    padding-top: 0.35rem;
+}
+
+.stat-delta.delta-up   { color: #22c55e; }
+.stat-delta.delta-down { color: #ef4444; }
+
 /* ── Two-column grid ──────────────────────────────────────────────────────── */
 
 .overview-grid {
@@ -1103,6 +1129,72 @@ input[type="search"]::placeholder { color: #c9cdd6; }
 }
 
 .sport-bar-meta strong { color: var(--text-2); font-weight: 600; }
+
+/* ── Map page ─────────────────────────────────────────────────────────────── */
+
+.map-page-map { height: 580px; border-radius: var(--radius-sm); overflow: hidden; }
+
+.color-legend {
+    position: absolute;
+    bottom: 2rem;
+    left: 1rem;
+    z-index: 10;
+    background: rgba(13,15,20,.8);
+    color: #e2e8f0;
+    padding: .5rem .75rem;
+    border-radius: var(--radius-sm);
+    font-size: .72rem;
+    pointer-events: none;
+    flex-direction: column;
+    gap: .35rem;
+    min-width: 140px;
+}
+
+.color-legend .legend-bar { height: 6px; border-radius: 3px; }
+
+.color-legend .legend-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: .65rem;
+    color: #94a3b8;
+}
+
+.maplibregl-popup-content {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: .8rem;
+    padding: .6rem .8rem;
+    border-radius: var(--radius-sm) !important;
+    box-shadow: var(--shadow-md);
+    line-height: 1.5;
+}
+
+.maplibregl-popup-content a { color: var(--text); text-decoration: none; }
+.maplibregl-popup-content a:hover { text-decoration: underline; }
+.maplibregl-popup-content span { color: var(--muted); font-size: .75rem; }
+
+/* ── Max HR control ───────────────────────────────────────────────────────── */
+
+.maxhr-control {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.maxhr-control label { font-weight: 500; }
+
+.maxhr-control input[type="number"] {
+    width: 56px;
+    padding: 0.2rem 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.78rem;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--bg);
+    text-align: center;
+}
 
 /* ── Goal drawer ──────────────────────────────────────────────────────────── */
 

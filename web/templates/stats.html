@@ -26,22 +26,27 @@
     <div class="stat-card">
         <span class="stat-label">Activities</span>
         <span class="stat-value" id="s-count">—</span>
+        <span id="s-count-delta"></span>
     </div>
     <div class="stat-card">
         <span class="stat-label">Distance</span>
         <span class="stat-value" id="s-distance">—</span>
+        <span id="s-distance-delta"></span>
     </div>
     <div class="stat-card">
         <span class="stat-label">Elevation</span>
         <span class="stat-value" id="s-elevation">—</span>
+        <span id="s-elevation-delta"></span>
     </div>
     <div class="stat-card">
         <span class="stat-label">Moving Time</span>
         <span class="stat-value" id="s-time">—</span>
+        <span id="s-time-delta"></span>
     </div>
     <div class="stat-card">
         <span class="stat-label">Avg Distance</span>
         <span class="stat-value" id="s-avg">—</span>
+        <span id="s-avg-delta"></span>
     </div>
 </div>
 
@@ -57,6 +62,25 @@
         <h2>By Sport</h2>
     </div>
     <div id="sport-bars" class="sport-bar-list"></div>
+</section>
+
+<section class="card">
+    <div class="card-header">
+        <h2>Training by Day &amp; Hour</h2>
+    </div>
+    <div id="day-hour-heatmap" style="overflow-x:auto;"></div>
+</section>
+
+<section class="card">
+    <div class="card-header">
+        <h2>Heart Rate Zones</h2>
+        <div class="maxhr-control">
+            <label for="max-hr-input">Max HR</label>
+            <input type="number" id="max-hr-input" min="100" max="250" value="190">
+            <span>bpm</span>
+        </div>
+    </div>
+    <div id="hr-zones-chart"></div>
 </section>
 
 <script src="/static/js/stats.js"></script>

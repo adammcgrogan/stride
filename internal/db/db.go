@@ -86,4 +86,8 @@ var migrations = []string{
 		target     REAL NOT NULL,
 		created_at TEXT NOT NULL DEFAULT (datetime('now'))
 	)`,
+	`CREATE TABLE IF NOT EXISTS settings (
+		athlete_id INTEGER PRIMARY KEY REFERENCES athletes(id),
+		max_hr     INTEGER NOT NULL DEFAULT 190
+	)`,
 }

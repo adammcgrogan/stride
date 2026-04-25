@@ -1,21 +1,6 @@
 # Stride — Feature Roadmap
 
-Features 1–4 (Manual Sync, Personal Records, Activity Heatmap, Yearly Goals) are shipped.
-
----
-
-## Feature 5: Fitness & Freshness Chart (CTL / ATL / TSB)
-
-**User problem:** The single most valuable tool Strava locks behind premium. Serious athletes need to know whether they're building fitness, accumulating fatigue, or ready to race — rolling totals don't answer this.
-
-**Technical plan:**
-1. Implement the standard Performance Management Chart model in JavaScript from `/api/activities` data (no backend changes required):
-   - **CTL (Fitness):** 42-day exponentially weighted moving average of daily training stress.
-   - **ATL (Fatigue):** 7-day exponentially weighted moving average.
-   - **TSB (Form):** CTL − ATL. Positive = fresh, negative = fatigued.
-2. Use `suffer_score` as the daily training stress score (fall back to `moving_time / 60` when absent).
-3. Render as a multi-line ApexCharts area chart on a dedicated section of the Stats page. Three series: Fitness (blue), Fatigue (red), Form (green/red depending on sign).
-4. Add a horizontal zero-line on the Form series and shade the negative region red to make fatigue immediately readable.
+Features 1–5, 7–10 are shipped (Sync, Records, Activity Heatmap, Goals, Fitness/CTL, Training Patterns, Route Map, Streaks, Race Predictor).
 
 ---
 
@@ -31,68 +16,16 @@ Features 1–4 (Manual Sync, Personal Records, Activity Heatmap, Yearly Goals) a
 
 ---
 
-## Feature 7: Training Pattern Analysis
-
-**User problem:** Athletes often have no idea when they actually train or what their intensity distribution looks like. "Do I run mostly in the mornings? Am I spending enough time in zone 2?"
-
-**Technical plan:**
-1. **Day/hour heatmap:** A 7×24 grid (day of week × hour of day) showing activity frequency. Computed client-side from `StartDateLocal`. Rendered as a small SVG grid similar to the existing calendar heatmap.
-2. **Heart rate zone breakdown:** Define 5 zones relative to estimated max HR (220 − age, or user-configurable). For each activity, bucket `average_heartrate` into a zone. Render a stacked bar chart of time in each zone over the filtered period.
-3. Both views live as new cards on the Stats page, filtered by the existing sport/date toolbar.
-4. Zones are configurable: store `max_hr` (and optionally zone boundaries) in a `settings` table keyed by `athlete_id`.
-
----
-
-## Feature 8: Route Map Heatmap
-
-**User problem:** Where do I actually train? The activity list is a table of numbers — there's no geographic view of your running territory.
-
-**Technical plan:**
-1. We already store `summary_polyline` for every activity. Decode all polylines in JavaScript using a lightweight polyline decoder (no external dependency needed — the algorithm is ~15 lines).
-2. Add a `GET /map` page that loads MapLibre GL JS (open-source, no API key required with a free tile provider like OpenStreetMap).
-3. Render all decoded route lines on the map as a semi-transparent layer. Overlap density creates the heatmap effect naturally.
-4. Add a sport-type filter so users can toggle between running routes, cycling routes, etc.
-5. The map view should cluster around the athlete's home region automatically using the bounding box of all coordinates.
-
----
-
-## Feature 9: Streak & Consistency Tracking
-
-**User problem:** "How many days in a row have I trained?" and "How consistent have I been this month?" are motivating questions with no answer in the current UI.
-
-**Technical plan:**
-1. Compute entirely client-side from `/api/activities`:
-   - Current streak (consecutive days with ≥1 activity up to today).
-   - Longest ever streak.
-   - Days active this week / month / year.
-   - Rest day frequency (average days between activities).
-2. Surface as a stat card row on the Dashboard, below the existing summary cards.
-3. Optionally: add a "consistency score" — percentage of days in the last 30 that had activity — displayed as a small ring chart.
-
----
-
-## Feature 10: Race Predictor
-
-**User problem:** "If I can run 10K in 48 minutes, what's my predicted marathon time?" is a question every runner asks. The Records page shows PRs but doesn't project them forward.
-
-**Technical plan:**
-1. Apply the Riegel formula: `T2 = T1 × (D2 / D1)^1.06` using the best-effort times already computed for the Records page.
-2. Seed the predictor with the user's best available effort (e.g. best 5K or 10K time).
-3. Project out to standard race distances: 1 mile, 5K, 10K, 15K, half marathon, marathon.
-4. Render as a clean table on the Records page under a "Race Predictions" heading. Show the input effort used as the basis and allow the user to select a different effort from a dropdown.
-
----
-
 ## Feature 11: Shoe & Gear Tracker
 
 **User problem:** Running shoes wear out around 500–800 km. There's no way to track mileage on individual pairs of shoes, so most athletes guess.
 
 **Technical plan:**
 1. New `gear` table: `(id, athlete_id, name, type, added_date, retired BOOL, notes)`.
-2. New `activity_gear` join table: `(activity_id, gear_id)` — many-to-many (a brick workout might involve two items).
+2. New `activity_gear` join table: `(activity_id, gear_id)` — many-to-many.
 3. `GET /gear` page: list all gear with accumulated distance, a progress bar toward a configurable retirement threshold (e.g. 700 km for shoes), and a "retire" action.
 4. On the activity detail page, add a gear selector to tag which shoes/bike were used.
-5. Retired gear remains visible but is greyed out, with total career distance shown.
+5. Retired gear remains visible but greyed out with total career distance shown.
 
 ---
 
@@ -108,14 +41,14 @@ Features 1–4 (Manual Sync, Personal Records, Activity Heatmap, Yearly Goals) a
 
 ---
 
-## Feature 13: CSV & GPX Export
+## Feature 13: CSV Export
 
-**User problem:** Your data should be yours. There's no way to get activity data out of Stride for analysis in Excel, Python, or to import elsewhere.
+**User problem:** Your data should be yours. There's no way to get activity data out of Stride for analysis in Excel or Python.
 
 **Technical plan:**
-1. **CSV:** `GET /export/activities.csv` — streams all activities as CSV with all available columns. Respect `sport`, `from`, `to` query params. Add an "Export CSV" button to the activities toolbar.
-2. **GPX:** `GET /export/activities/{id}.gpx` — generates a GPX file for a single activity from the stored polyline. Requires decoding the polyline and writing valid GPX XML.
-3. Set `Content-Disposition: attachment` on both responses. No new database queries needed beyond what exists.
+1. `GET /export/activities.csv` — streams all activities as CSV with all available columns. Respect `sport`, `from`, `to` query params.
+2. Add an "Export CSV" button to the activities toolbar.
+3. Set `Content-Disposition: attachment` on the response. No new database queries needed beyond what exists.
 
 ---
 
@@ -127,18 +60,105 @@ Features 1–4 (Manual Sync, Personal Records, Activity Heatmap, Yearly Goals) a
 1. Register a webhook subscription with Strava's `POST /push_subscriptions` API, pointing to `/webhook` on the running server.
 2. Add `GET /webhook` for Strava's hub challenge verification (returns `hub.challenge`).
 3. Add `POST /webhook` that parses the event; on `object_type=activity, aspect_type=create`, trigger `syncer.SyncAthlete(athleteID)` for the relevant athlete.
-4. Store `subscription_id` in a `settings` table; deregister cleanly on shutdown.
+4. Store `subscription_id` in the `settings` table; deregister cleanly on shutdown.
 5. Requires the server to be publicly reachable — document the ngrok/Tailscale setup for local dev.
 
 ---
 
-## Feature 15: Natural Language Query (LLM)
+## Feature 15: Best Efforts Progression
 
-**User problem:** "What was my highest mileage week ever?", "Show me all runs where I went further than 20km but averaged under 5:30/km" — complex questions that require writing SQL or building custom filters.
+**User problem:** The Records page shows your all-time best at each distance, but not how that best has changed over time. "Is my 5K getting faster or have I plateaued?"
 
 **Technical plan:**
-1. Add a `GET /ask` page with a text input and result area.
-2. On submit, send the user's question to the Claude API along with the SQLite schema and a sample of recent activities as context.
-3. The model generates a SQL query; the backend executes it against the `activities` table (read-only, parameterised) and returns results as a table.
-4. Render the result table and the generated SQL (collapsed, for transparency).
-5. Guard against write queries by checking for `INSERT/UPDATE/DELETE/DROP` before execution, and run in a read-only SQLite connection.
+1. On the Records page, add a chart below the PR table showing best-effort pace at each standard distance over time (rolling best by month).
+2. Computed entirely client-side from `/api/activities` using the same effort-detection logic already used for the records table.
+3. Let the user pick which distance to chart (5K, 10K, half, etc.) via a tab or dropdown.
+4. Overlay a trend line (moving average) to make the direction of improvement clear.
+
+---
+
+## Feature 16: Activity Tagging
+
+**User problem:** Not all runs are the same. A race, a long run, a recovery jog, and a tempo session are fundamentally different but look identical in the activity list. There's no way to filter or analyse by training intent.
+
+**Technical plan:**
+1. New `tags` table: `(id, athlete_id, name, color)`. Pre-populate with sensible defaults: Race, Long Run, Workout, Easy, Commute.
+2. New `activity_tags` join table: `(activity_id, tag_id)`.
+3. On the activity detail page, add a multi-select tag picker (inline, no modal needed).
+4. Add tag filter chips to the Activities page toolbar — selecting one filters the list client-side.
+5. On the Stats page, show distance breakdown by tag (stacked bar) so athletes can see how much of their volume is easy vs hard.
+
+---
+
+## Feature 17: Training Load Distribution
+
+**User problem:** Are you training too hard, too easy, or with the right balance? Coaches recommend 80% easy / 20% hard (polarised model). There's no way to see your current split.
+
+**Technical plan:**
+1. Classify each activity into Easy / Moderate / Hard using average HR relative to max HR (from the existing `settings.max_hr`):
+   - Easy: < 75% max HR
+   - Moderate: 75–87%
+   - Hard: > 87%
+   - Falls back to pace zones if HR is unavailable.
+2. On the Stats page, add a stacked area chart showing the weekly volume split by intensity over the last 16 weeks.
+3. Show an overall ratio callout: "Last 8 weeks: 71% Easy · 18% Moderate · 11% Hard" so the athlete can compare against the polarised target.
+
+---
+
+## Feature 18: Dark Mode
+
+**User problem:** The app is hardcoded to light mode. Athletes often train early in the morning or late at night and want a UI that doesn't hurt their eyes.
+
+**Technical plan:**
+1. The CSS already uses CSS custom properties (`--bg`, `--card`, `--text`, etc.) — add a second `:root[data-theme="dark"]` block that overrides them.
+2. Add a theme toggle button in the sidebar (sun/moon icon). On click, flip `data-theme` on `<html>` and persist the preference to `localStorage`.
+3. Default to the OS preference (`prefers-color-scheme`) on first visit.
+4. No backend changes required — purely CSS + a few lines of JS in `layout.html`.
+
+---
+
+## Feature 19: Personal Dashboard Customisation
+
+**User problem:** Different athletes care about different metrics. A cyclist doesn't need the running pace zones; a casual jogger doesn't care about CTL. The dashboard shows everything to everyone.
+
+**Technical plan:**
+1. Add a "Customise" button to the dashboard that toggles an edit mode.
+2. In edit mode, each card gets a hide/show toggle. Preferences stored in `localStorage` (no backend needed).
+3. Allow drag-to-reorder the main dashboard cards (using the HTML5 Drag and Drop API — no library needed).
+4. A "Reset to default" option restores the original layout.
+
+---
+
+## Feature 20: Segment Performance Tracking
+
+**User problem:** Strava Segments are great but locked to Strava's infrastructure. For athletes who run the same routes repeatedly, "how did I do on the climb today vs last time?" is a key question.
+
+**Technical plan:**
+1. Detect repeated route segments by comparing decoded polylines — if two activities share a sufficiently similar start/end bounding box and distance, they likely cover the same ground.
+2. Group matching routes and show a "Route history" panel on the map page: click a route cluster to see all efforts on that route ranked by pace.
+3. No manual segment creation needed — the clustering is automatic.
+4. On the activity detail page, if the activity matches a known cluster, show "You've run this route 12 times. Your best: 4:32/km on 14 Feb."
+
+---
+
+## Feature 21: Monthly Training Report
+
+**User problem:** At the end of each month, athletes want a summary of what they did — but there's no consolidated view. You have to mental-math across the stats page.
+
+**Technical plan:**
+1. Add a `GET /report/{year}/{month}` page (e.g. `/report/2026/03`).
+2. Show: total distance, elevation, time, activity count for the month. Compare each metric to the prior month and same month last year (arrows + % delta).
+3. Best activity of the month (longest distance or highest suffer score). Longest streak within the month.
+4. Link from the dashboard with a "View March report →" shortcut pointing to the most recently completed month.
+
+---
+
+## Feature 22: Pace & Effort Zones Configuration
+
+**User problem:** The HR zones on the Stats page are computed from a single `max_hr` number. Athletes who use pace-based training (common for running) have no pace zone breakdown, and those who do use HR want to configure zone boundaries precisely.
+
+**Technical plan:**
+1. Add a `GET /settings` page (simple form) covering: max HR, HR zone boundaries (5 zones, editable bpm cutoffs), default pace zones (5 zones, editable sec/km cutoffs), preferred units (km/miles).
+2. Store all settings in the existing `settings` table (add columns via migration).
+3. The HR zones chart on Stats and the training load distribution chart (Feature 17) both read from these settings.
+4. Units preference is applied globally — all distance/pace displays read the preference and format accordingly.

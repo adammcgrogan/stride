@@ -120,6 +120,38 @@ func (db *DB) GetStats(athleteID int64) (*Stats, error) {
 	return &stats, err
 }
 
+type PolylineRow struct {
+	ID             int64
+	Name           string
+	SportType      string
+	StartDateLocal string
+	Distance       float64
+	MovingTime     int
+	Polyline       string
+}
+
+func (db *DB) GetPolylines(athleteID int64) ([]PolylineRow, error) {
+	rows, err := db.Query(`
+		SELECT id, name, sport_type, start_date_local, distance, moving_time, summary_polyline
+		FROM activities
+		WHERE athlete_id = ? AND summary_polyline != ''
+		ORDER BY start_date_local DESC`, athleteID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var polylines []PolylineRow
+	for rows.Next() {
+		var p PolylineRow
+		if err := rows.Scan(&p.ID, &p.Name, &p.SportType, &p.StartDateLocal, &p.Distance, &p.MovingTime, &p.Polyline); err != nil {
+			return nil, err
+		}
+		polylines = append(polylines, p)
+	}
+	return polylines, rows.Err()
+}
+
 type SportStat struct {
 	SportType string
 	Count     int
