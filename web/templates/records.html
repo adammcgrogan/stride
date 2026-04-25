@@ -1,0 +1,104 @@
+{{define "content"}}
+<div class="overview-header">
+    <h1>Personal Records</h1>
+</div>
+
+{{if not .Records}}
+<div class="card empty-state">
+    No activities yet — sync to see your personal records.
+</div>
+{{else}}
+
+<div class="stats-toolbar">
+    <div class="filter-group" id="sport-filter-bar">
+        <button class="period-btn active" data-sport="">All sports</button>
+        {{range .Records}}
+        <button class="period-btn" data-sport="{{.SportType}}">{{.SportType}}</button>
+        {{end}}
+    </div>
+</div>
+
+{{range .Records}}
+<section class="records-section" data-sport="{{.SportType}}">
+
+    {{if .HasDistancePRs}}
+    <div class="card pr-table-card">
+        <h2>Distance PRs <span class="pr-table-note">best time on activities matching each distance band</span></h2>
+        <div class="pr-grid">
+        {{range .DistancePRs}}
+            {{if .Activity}}
+            <div class="pr-card">
+                <span class="pr-card-dist">{{.Label}}</span>
+                <span class="pr-card-time">{{formatRunTime .Activity.MovingTime}}</span>
+                <span class="pr-card-pace">{{formatPace .Activity.AverageSpeed}}</span>
+                <div class="pr-card-footer">
+                    <a href="/activities/{{.Activity.ID}}" class="pr-card-activity">{{.Activity.Name}}</a>
+                    <span class="pr-card-date">{{formatDate .Activity.Date}}</span>
+                </div>
+            </div>
+            {{else}}
+            <div class="pr-card">
+                <span class="pr-card-dist">{{.Label}}</span>
+                <span class="pr-card-empty">No effort recorded</span>
+            </div>
+            {{end}}
+        {{end}}
+        </div>
+    </div>
+    {{end}}
+
+    <div class="records-grid">
+        {{with .Longest}}
+        <div class="record-card">
+            <span class="record-label">Longest</span>
+            <span class="record-value">{{fmtKm .Distance}}<small> km</small></span>
+            <span class="record-sub">{{formatDuration .MovingTime}}</span>
+            <div class="record-footer">
+                <a href="/activities/{{.ID}}" class="record-activity">{{.Name}}</a>
+                <span class="record-date">{{formatDate .Date}}</span>
+            </div>
+        </div>
+        {{end}}
+
+        {{with .BestPace}}
+        <div class="record-card">
+            <span class="record-label">Best Pace</span>
+            <span class="record-value">{{formatPace .AverageSpeed}}</span>
+            <span class="record-sub">{{fmtKm .Distance}} km · {{formatDuration .MovingTime}}</span>
+            <div class="record-footer">
+                <a href="/activities/{{.ID}}" class="record-activity">{{.Name}}</a>
+                <span class="record-date">{{formatDate .Date}}</span>
+            </div>
+        </div>
+        {{end}}
+
+        {{with .MostElev}}
+        <div class="record-card">
+            <span class="record-label">Most Elevation</span>
+            <span class="record-value">{{formatFloat .Elevation}}<small> m</small></span>
+            <span class="record-sub">{{fmtKm .Distance}} km</span>
+            <div class="record-footer">
+                <a href="/activities/{{.ID}}" class="record-activity">{{.Name}}</a>
+                <span class="record-date">{{formatDate .Date}}</span>
+            </div>
+        </div>
+        {{end}}
+    </div>
+</section>
+{{end}}
+
+{{end}}
+
+<script>
+document.querySelectorAll('#sport-filter-bar .period-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('#sport-filter-bar .period-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const sport = btn.dataset.sport;
+        document.querySelectorAll('.records-section').forEach(section => {
+            section.style.display = (!sport || section.dataset.sport === sport) ? '' : 'none';
+        });
+    });
+});
+</script>
+{{end}}
