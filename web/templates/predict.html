@@ -1,0 +1,59 @@
+{{define "content"}}
+<div class="overview-header">
+    <div>
+        <h1>Race Predictor</h1>
+        <p class="subtext">Estimate your finish time at any distance based on a recent effort.</p>
+    </div>
+</div>
+
+<div id="no-data" class="card empty-state" style="display:none">
+    No recorded efforts yet — complete some activities and sync to use the predictor.
+</div>
+
+<div id="predictor" style="display:none">
+
+    <div class="stats-toolbar" id="sport-toolbar" style="display:none">
+        <div class="filter-group" id="sport-filter-bar"></div>
+    </div>
+
+    <section class="card">
+        <h2>Choose a starting effort</h2>
+        <p class="predictor-hint">
+            Pick the effort closest to a recent race or hard workout.
+            The predictor scales every other distance from this one time.
+        </p>
+        <div id="seeds-list" class="effort-grid"></div>
+    </section>
+
+    <section class="card">
+        <h2>Predicted finish times</h2>
+
+        <div class="seed-banner" id="seed-banner" style="display:none">
+            <div>
+                <div class="seed-banner-distance" id="seed-banner-distance">—</div>
+                <div class="seed-banner-time" id="seed-banner-time">—</div>
+            </div>
+            <div class="seed-banner-meta" id="seed-banner-meta"></div>
+        </div>
+
+        <table id="predictions-table">
+            <thead>
+                <tr>
+                    <th>Distance</th>
+                    <th>Predicted time</th>
+                    <th id="pace-col-header">Pace</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <p class="predictor-accuracy-note">
+            Predictions within 2× of your chosen effort are usually accurate to a few percent.
+            Rows further away are rough estimates — treat them as ballpark figures.
+        </p>
+    </section>
+
+</div>
+
+<script>const SEEDS = {{.SeedsJSON}};</script>
+<script src="/static/js/predict.js"></script>
+{{end}}
