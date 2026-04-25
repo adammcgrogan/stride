@@ -58,6 +58,17 @@ func (db *DB) GetAthlete(id int64) (*AthleteRow, error) {
 	return &athlete, err
 }
 
+func (db *DB) GetLastManualSync(athleteID int64) (int64, error) {
+	var ts int64
+	err := db.QueryRow(`SELECT last_manual_sync_at FROM athletes WHERE id = ?`, athleteID).Scan(&ts)
+	return ts, err
+}
+
+func (db *DB) SetLastManualSync(athleteID int64, ts int64) error {
+	_, err := db.Exec(`UPDATE athletes SET last_manual_sync_at = ? WHERE id = ?`, ts, athleteID)
+	return err
+}
+
 // GetAllAthleteIDs returns every athlete ID stored in the database.
 // Used by the background scheduler to sync all registered athletes.
 func (db *DB) GetAllAthleteIDs() ([]int64, error) {
