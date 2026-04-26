@@ -4,7 +4,10 @@
         <a href="/activities" class="back-link">← Activities</a>
         <h1>{{.Name}}</h1>
     </div>
-    <span class="year-badge">{{.SportType}}</span>
+    <div style="display:flex;align-items:center;gap:0.75rem">
+        <span class="year-badge">{{.SportType}}</span>
+        <a href="https://www.strava.com/activities/{{.ID}}" target="_blank" rel="noopener" class="strava-link">View on Strava</a>
+    </div>
 </div>
 
 <div class="stat-grid">
@@ -48,7 +51,9 @@
 <section class="card">
     <h2>Details</h2>
     <dl>
-        <dt>Date</dt><dd>{{slice .StartDateLocal 0 10}}</dd>
+        <dt>Date</dt><dd>{{formatDate .StartDateLocal}}</dd>
+        <dt>Elapsed Time</dt><dd>{{formatDuration .ElapsedTime}}{{with restTime .ElapsedTime .MovingTime}} <small style="opacity:.6">({{.}} stopped)</small>{{end}}</dd>
+        {{if gt .MaxSpeed 0.0}}<dt>Max Speed</dt><dd><span data-mps-max="{{.MaxSpeed}}">{{formatMaxSpeed .MaxSpeed}}</span></dd>{{end}}
         {{if gt .AverageHeartrate 0.0}}<dt>Avg HR</dt><dd>{{formatFloat .AverageHeartrate}} <small>bpm</small></dd>{{end}}
         {{if gt .MaxHeartrate 0.0}}<dt>Max HR</dt><dd>{{formatFloat .MaxHeartrate}} <small>bpm</small></dd>{{end}}
         {{if gt .AverageCadence 0.0}}<dt>Avg Cadence</dt><dd>{{formatFloat .AverageCadence}} <small>rpm</small></dd>{{end}}

@@ -87,6 +87,28 @@ var templateFuncs = template.FuncMap{
 			return "records-sport-badge--default"
 		}
 	},
+	"formatMaxSpeed": func(metersPerSecond float64) string {
+		if metersPerSecond == 0 {
+			return "—"
+		}
+		return fmt.Sprintf("%.1f km/h", metersPerSecond*3.6)
+	},
+	"restTime": func(elapsed, moving int) string {
+		rest := elapsed - moving
+		if rest <= 0 {
+			return ""
+		}
+		hours := rest / 3600
+		minutes := (rest % 3600) / 60
+		seconds := rest % 60
+		if hours > 0 {
+			return fmt.Sprintf("%dh %dm", hours, minutes)
+		}
+		if minutes > 0 {
+			return fmt.Sprintf("%dm %ds", minutes, seconds)
+		}
+		return fmt.Sprintf("%ds", seconds)
+	},
 	"weatherDesc": func(code int) string {
 		switch {
 		case code == 0:

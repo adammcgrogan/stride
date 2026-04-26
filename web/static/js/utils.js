@@ -94,4 +94,12 @@ function applyUnits() {
     document.querySelectorAll('[data-mps]').forEach(el => {
         el.textContent = fmtPace(parseFloat(el.dataset.mps));
     });
+    document.querySelectorAll('[data-mps-max]').forEach(el => {
+        const mps = parseFloat(el.dataset.mpsMax);
+        if (getUnits() === 'mi') {
+            el.textContent = (mps * 2.23694).toFixed(1) + ' mph';
+        } else {
+            el.textContent = (mps * 3.6).toFixed(1) + ' km/h';
+        }
+    });
 }
