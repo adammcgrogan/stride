@@ -1451,83 +1451,114 @@ input[type="search"]::placeholder { color: #c9cdd6; }
 /* Override old TSB card styles — no longer used */
 .fitness-stat-grid .fitness-form-card { display: none; }
 
-/* ── PR card grid (Records) ───────────────────────────────────────────────── */
+/* ── Records page redesign ────────────────────────────────────────────────── */
 
-.pr-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-}
-
-.pr-card {
-    background: var(--bg);
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
-    padding: 1rem 1.1rem;
+.records-sport-card {
     display: flex;
     flex-direction: column;
-    gap: 0.1rem;
-    transition: background var(--ease), box-shadow var(--ease);
+    gap: 0;
 }
 
-.pr-card:hover { background: #fff; box-shadow: var(--shadow-sm); }
+.records-sport-heading {
+    margin-bottom: 1.5rem;
+}
 
-.pr-card-dist {
-    font-size: 0.68rem;
+.records-sport-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 1rem;
+    border-radius: var(--radius-full);
+    font-size: 0.84rem;
     font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.records-sport-badge--running  { background: rgba(34,197,94,.12);  color: #16a34a; }
+.records-sport-badge--cycling  { background: rgba(59,130,246,.12); color: #2563eb; }
+.records-sport-badge--swimming { background: rgba(6,182,212,.12);  color: #0891b2; }
+.records-sport-badge--default  { background: var(--accent-muted);  color: var(--accent); }
+
+.records-block-label {
+    font-size: 0.64rem;
     text-transform: uppercase;
     letter-spacing: .09em;
-    color: var(--accent);
-    margin-bottom: 0.2rem;
-}
-
-.pr-card-time {
-    font-size: 1.5rem;
     font-weight: 700;
-    letter-spacing: -0.04em;
-    line-height: 1.1;
-    color: var(--text);
-    font-feature-settings: "tnum";
-}
-
-.pr-card-pace {
-    font-size: 0.78rem;
     color: var(--muted);
-    font-feature-settings: "tnum";
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.6rem;
 }
 
-.pr-card-footer {
-    margin-top: auto;
-    padding-top: 0.6rem;
+.records-pr-block {
+    margin-bottom: 1.75rem;
+}
+
+/* PR table — overrides global table styles for a tighter look */
+.pr-table th { padding: 0 0.75rem 0.6rem; font-size: 0.63rem; }
+.pr-table td { padding: 0.6rem 0.75rem; font-size: 0.875rem; }
+.pr-table tr:last-child td { border-bottom: none; }
+.pr-dist-label { font-weight: 700; color: var(--text); width: 5.5rem; }
+.pr-time { font-weight: 600; font-feature-settings: "tnum"; color: var(--text); }
+.pr-pace { font-feature-settings: "tnum"; color: var(--muted); font-size: 0.83rem; }
+.pr-col-name { width: 40%; }
+.pr-activity-link { color: var(--text-2); font-weight: 500; font-size: 0.83rem; }
+.pr-activity-link:hover { color: var(--accent); text-decoration: none; }
+.pr-date { color: var(--muted); font-size: 0.78rem; white-space: nowrap; }
+.pr-row-empty td { color: var(--muted); opacity: 0.5; }
+.pr-empty { color: var(--muted); }
+
+/* Misc records compact row */
+.records-misc-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 1.25rem 1.75rem;
+    padding-top: 1.25rem;
     border-top: 1px solid var(--border);
 }
 
-.pr-card-activity {
-    font-size: 0.72rem;
+.misc-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.misc-stat-label {
+    font-size: 0.64rem;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 0.15rem;
+}
+
+.misc-stat-value {
+    font-size: 1.45rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    line-height: 1.15;
+}
+
+.misc-stat-value small { font-size: 0.875rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+
+.misc-stat-sub {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+}
+
+.misc-stat-footer { display: flex; flex-direction: column; gap: 0.1rem; margin-top: 0.3rem; }
+
+.misc-stat-link {
+    font-size: 0.75rem;
     font-weight: 500;
     color: var(--text-2);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    display: block;
     transition: color var(--ease);
 }
 
-.pr-card-activity:hover { color: var(--accent); text-decoration: none; }
-
-.pr-card-date {
-    font-size: 0.67rem;
-    color: var(--muted);
-}
-
-.pr-card-empty {
-    font-size: 0.78rem;
-    color: var(--muted);
-    font-style: italic;
-    padding: 0.5rem 0;
-}
+.misc-stat-link:hover { color: var(--accent); text-decoration: none; }
+.misc-stat-date { font-size: 0.67rem; color: var(--muted); }
 
 /* ── Dashboard section headers ────────────────────────────────────────────── */
 

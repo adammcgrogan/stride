@@ -75,6 +75,18 @@ var templateFuncs = template.FuncMap{
 		}
 		return fmt.Sprintf("%.0f", f)
 	},
+	"sportClass": func(sport string) string {
+		switch sport {
+		case "Run", "TrailRun", "VirtualRun", "Walk", "Hike":
+			return "records-sport-badge--running"
+		case "Ride", "VirtualRide", "GravelRide", "MountainBikeRide", "EBikeRide":
+			return "records-sport-badge--cycling"
+		case "Swim", "OpenWaterSwim":
+			return "records-sport-badge--swimming"
+		default:
+			return "records-sport-badge--default"
+		}
+	},
 	"weatherDesc": func(code int) string {
 		switch {
 		case code == 0:

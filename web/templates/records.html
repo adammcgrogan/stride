@@ -9,6 +9,7 @@
 </div>
 {{else}}
 
+{{if gt (len .Records) 1}}
 <div class="stats-toolbar">
     <div class="filter-group" id="sport-filter-bar">
         <button class="period-btn active" data-sport="">All sports</button>
@@ -17,89 +18,92 @@
         {{end}}
     </div>
 </div>
-
-<div id="no-sport-results" class="card empty-state" style="display:none">
-    No records for this sport yet.
-</div>
+{{end}}
 
 {{range .Records}}
-<section class="records-section" data-sport="{{.SportType}}">
+<div class="card records-sport-card" data-sport="{{.SportType}}">
+
+    <div class="records-sport-heading">
+        <span class="records-sport-badge {{sportClass .SportType}}">{{.SportType}}</span>
+    </div>
 
     {{if .HasDistancePRs}}
-    <div class="card pr-table-card">
-        <h2>Distance PRs <span class="pr-table-note">best time on activities matching each distance band</span></h2>
-        <div class="pr-grid">
-        {{range .DistancePRs}}
-            {{if .Activity}}
-            <div class="pr-card">
-                <span class="pr-card-dist">{{.Label}}</span>
-                <span class="pr-card-time">{{formatRunTime .Activity.MovingTime}}</span>
-                <span class="pr-card-pace"><span data-mps="{{.Activity.AverageSpeed}}">{{formatPace .Activity.AverageSpeed}}</span></span>
-                <div class="pr-card-footer">
-                    <a href="/activities/{{.Activity.ID}}" class="pr-card-activity">{{.Activity.Name}}</a>
-                    <span class="pr-card-date">{{formatDate .Activity.Date}}</span>
-                </div>
-            </div>
-            {{else}}
-            <div class="pr-card">
-                <span class="pr-card-dist">{{.Label}}</span>
-                <span class="pr-card-empty">No effort recorded</span>
-            </div>
+    <div class="records-pr-block">
+        <p class="records-block-label">Distance PRs</p>
+        <table class="pr-table">
+            <thead>
+                <tr>
+                    <th>Distance</th>
+                    <th>Time</th>
+                    <th>Pace</th>
+                    <th class="pr-col-name">Activity</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+            {{range .DistancePRs}}
+            <tr{{if not .Activity}} class="pr-row-empty"{{end}}>
+                <td class="pr-dist-label">{{.Label}}</td>
+                {{if .Activity}}
+                <td class="pr-time">{{formatRunTime .Activity.MovingTime}}</td>
+                <td class="pr-pace"><span data-mps="{{.Activity.AverageSpeed}}">{{formatPace .Activity.AverageSpeed}}</span></td>
+                <td class="pr-col-name"><a href="/activities/{{.Activity.ID}}" class="pr-activity-link">{{.Activity.Name}}</a></td>
+                <td class="pr-date">{{formatDate .Activity.Date}}</td>
+                {{else}}
+                <td colspan="4" class="pr-empty">—</td>
+                {{end}}
+            </tr>
             {{end}}
-        {{end}}
-        </div>
+            </tbody>
+        </table>
     </div>
     {{end}}
 
-    <div class="records-grid">
+    <div class="records-misc-row">
         {{with .Longest}}
-        <div class="record-card">
-            <span class="record-label">Longest</span>
-            <span class="record-value"><span data-m="{{.Distance}}">{{fmtKm .Distance}} km</span></span>
-            <span class="record-sub">{{formatDuration .MovingTime}}</span>
-            <div class="record-footer">
-                <a href="/activities/{{.ID}}" class="record-activity">{{.Name}}</a>
-                <span class="record-date">{{formatDate .Date}}</span>
+        <div class="misc-stat">
+            <span class="misc-stat-label">Longest</span>
+            <span class="misc-stat-value"><span data-m="{{.Distance}}">{{fmtKm .Distance}} km</span></span>
+            <span class="misc-stat-sub">{{formatDuration .MovingTime}}</span>
+            <div class="misc-stat-footer">
+                <a href="/activities/{{.ID}}" class="misc-stat-link">{{.Name}}</a>
+                <span class="misc-stat-date">{{formatDate .Date}}</span>
             </div>
         </div>
         {{end}}
 
         {{with .BestPace}}
-        <div class="record-card">
-            <span class="record-label">Best Pace</span>
-            <span class="record-value"><span data-mps="{{.AverageSpeed}}">{{formatPace .AverageSpeed}}</span></span>
-            <span class="record-sub"><span data-m="{{.Distance}}">{{fmtKm .Distance}} km</span> · {{formatDuration .MovingTime}}</span>
-            <div class="record-footer">
-                <a href="/activities/{{.ID}}" class="record-activity">{{.Name}}</a>
-                <span class="record-date">{{formatDate .Date}}</span>
+        <div class="misc-stat">
+            <span class="misc-stat-label">Best Pace</span>
+            <span class="misc-stat-value"><span data-mps="{{.AverageSpeed}}">{{formatPace .AverageSpeed}}</span></span>
+            <span class="misc-stat-sub"><span data-m="{{.Distance}}">{{fmtKm .Distance}} km</span> · {{formatDuration .MovingTime}}</span>
+            <div class="misc-stat-footer">
+                <a href="/activities/{{.ID}}" class="misc-stat-link">{{.Name}}</a>
+                <span class="misc-stat-date">{{formatDate .Date}}</span>
             </div>
         </div>
         {{end}}
 
         {{with .MostElev}}
-        <div class="record-card">
-            <span class="record-label">Most Elevation</span>
-            <span class="record-value">{{formatFloat .Elevation}}<small> m</small></span>
-            <span class="record-sub"><span data-m="{{.Distance}}">{{fmtKm .Distance}} km</span></span>
-            <div class="record-footer">
-                <a href="/activities/{{.ID}}" class="record-activity">{{.Name}}</a>
-                <span class="record-date">{{formatDate .Date}}</span>
+        <div class="misc-stat">
+            <span class="misc-stat-label">Most Elevation</span>
+            <span class="misc-stat-value">{{formatFloat .Elevation}}<small> m</small></span>
+            <span class="misc-stat-sub"><span data-m="{{.Distance}}">{{fmtKm .Distance}} km</span></span>
+            <div class="misc-stat-footer">
+                <a href="/activities/{{.ID}}" class="misc-stat-link">{{.Name}}</a>
+                <span class="misc-stat-date">{{formatDate .Date}}</span>
             </div>
         </div>
         {{end}}
     </div>
-</section>
+
+</div>
 {{end}}
 
 <section class="card" id="progression-card">
     <div class="card-header">
         <h2>Best Effort Progression</h2>
-        <div class="filter-group progression-tabs" id="progression-dist-tabs">
-            <button class="period-btn active" data-dist="5k">5K</button>
-            <button class="period-btn" data-dist="10k">10K</button>
-            <button class="period-btn" data-dist="half">Half</button>
-            <button class="period-btn" data-dist="marathon">Marathon</button>
-        </div>
+        <div class="filter-group progression-tabs" id="progression-dist-tabs"></div>
     </div>
     <div id="progression-chart" style="min-height:200px"></div>
     <p id="progression-empty" class="empty-state" style="display:none;padding:2rem 0">
@@ -115,12 +119,10 @@ document.querySelectorAll('#sport-filter-bar .period-btn').forEach(btn => {
         document.querySelectorAll('#sport-filter-bar .period-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         const sport = btn.dataset.sport;
-        const sections = document.querySelectorAll('.records-section');
-        sections.forEach(section => {
-            section.style.display = (!sport || section.dataset.sport === sport) ? '' : 'none';
+        document.querySelectorAll('.records-sport-card').forEach(card => {
+            card.style.display = (!sport || card.dataset.sport === sport) ? '' : 'none';
         });
-        const anyVisible = [...sections].some(s => s.style.display !== 'none');
-        document.getElementById('no-sport-results').style.display = anyVisible ? 'none' : '';
+        document.dispatchEvent(new CustomEvent('records-sport-changed', { detail: { sport } }));
     });
 });
 </script>
