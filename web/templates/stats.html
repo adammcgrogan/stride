@@ -9,8 +9,9 @@
         <button class="period-btn" data-period="month">Month</button>
         <button class="period-btn" data-period="year">Year</button>
         <button class="period-btn" data-period="all">All time</button>
+        <button class="period-btn" data-period="custom">Custom</button>
     </div>
-    <div class="filter-group">
+    <div class="filter-group" id="date-range-group" style="display:none">
         <input type="date" id="date-from" title="From">
         <span class="date-sep">—</span>
         <input type="date" id="date-to" title="To">
@@ -66,9 +67,18 @@
 
 <section class="card">
     <div class="card-header">
-        <h2>Training by Day &amp; Hour</h2>
+        <h2>Training Patterns</h2>
     </div>
-    <div id="day-hour-heatmap" style="overflow-x:auto;"></div>
+    <div class="training-pattern-grid">
+        <div>
+            <p class="pattern-label">By day of week</p>
+            <div id="training-by-day"></div>
+        </div>
+        <div>
+            <p class="pattern-label">By time of day</p>
+            <div id="training-by-hour"></div>
+        </div>
+    </div>
 </section>
 
 <section class="card">

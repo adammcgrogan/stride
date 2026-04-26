@@ -1,6 +1,9 @@
 {{define "content"}}
 <div class="overview-header">
-    <h1>{{.Name}}</h1>
+    <div>
+        <a href="/activities" class="back-link">← Activities</a>
+        <h1>{{.Name}}</h1>
+    </div>
     <span class="year-badge">{{.SportType}}</span>
 </div>
 
@@ -32,8 +35,9 @@
 <script src="https://unpkg.com/@mapbox/polyline@1.2.1/src/polyline.js"></script>
 <script>
     const map = L.map('map');
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://carto.com/">CARTO</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        subdomains: 'abc'
     }).addTo(map);
     const coords = polyline.decode("{{.SummaryPolyline}}");
     const line = L.polyline(coords, {color: '#FC4C02', weight: 3}).addTo(map);
@@ -44,13 +48,13 @@
 <section class="card">
     <h2>Details</h2>
     <dl>
-        <dt>Date</dt>        <dd>{{slice .StartDateLocal 0 10}}</dd>
-        <dt>Avg HR</dt>      <dd>{{formatFloat .AverageHeartrate}} {{if gt .AverageHeartrate 0.0}}<small>bpm</small>{{end}}</dd>
-        <dt>Max HR</dt>      <dd>{{formatFloat .MaxHeartrate}} {{if gt .MaxHeartrate 0.0}}<small>bpm</small>{{end}}</dd>
-        <dt>Avg Cadence</dt> <dd>{{formatFloat .AverageCadence}} {{if gt .AverageCadence 0.0}}<small>rpm</small>{{end}}</dd>
-        <dt>Avg Power</dt>   <dd>{{formatFloat .AverageWatts}} {{if gt .AverageWatts 0.0}}<small>W</small>{{end}}</dd>
-        <dt>Calories</dt>    <dd>{{formatFloat .Kilojoules}} {{if gt .Kilojoules 0.0}}<small>kJ</small>{{end}}</dd>
-        <dt>Suffer Score</dt><dd>{{formatFloat .SufferScore}}</dd>
+        <dt>Date</dt><dd>{{slice .StartDateLocal 0 10}}</dd>
+        {{if gt .AverageHeartrate 0.0}}<dt>Avg HR</dt><dd>{{formatFloat .AverageHeartrate}} <small>bpm</small></dd>{{end}}
+        {{if gt .MaxHeartrate 0.0}}<dt>Max HR</dt><dd>{{formatFloat .MaxHeartrate}} <small>bpm</small></dd>{{end}}
+        {{if gt .AverageCadence 0.0}}<dt>Avg Cadence</dt><dd>{{formatFloat .AverageCadence}} <small>rpm</small></dd>{{end}}
+        {{if gt .AverageWatts 0.0}}<dt>Avg Power</dt><dd>{{formatFloat .AverageWatts}} <small>W</small></dd>{{end}}
+        {{if gt .Kilojoules 0.0}}<dt>Calories</dt><dd>{{formatFloat .Kilojoules}} <small>kJ</small></dd>{{end}}
+        {{if gt .SufferScore 0.0}}<dt>Suffer Score</dt><dd>{{formatFloat .SufferScore}}</dd>{{end}}
     </dl>
 </section>
 {{end}}

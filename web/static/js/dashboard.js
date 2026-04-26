@@ -103,7 +103,6 @@ function renderStreaks(activities) {
     document.getElementById('streak-month').innerHTML       = `${activeThisMonth}<small> days</small>`;
     document.getElementById('streak-consistency').innerHTML = `${consistency}<small>%</small>`;
     document.getElementById('consistency-fill').style.width = consistency + '%';
-    document.getElementById('streak-grid').style.display    = '';
 }
 
 init();

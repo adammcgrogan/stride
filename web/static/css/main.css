@@ -133,6 +133,19 @@ main {
     line-height: 1.2;
 }
 
+.back-link {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    margin-bottom: 0.3rem;
+    letter-spacing: -0.01em;
+    transition: color var(--ease);
+}
+
+.back-link:hover { color: var(--text); }
+
 .subtext {
     color: var(--muted);
     font-size: 0.875rem;
@@ -293,6 +306,8 @@ tr:last-child td { border-bottom: none; }
 tbody tr { transition: background var(--ease); }
 tbody tr:hover { background: #f8f9fb; }
 tbody tr:hover td { color: var(--text); }
+tbody tr.act-row { cursor: pointer; }
+.act-pace { font-feature-settings: "tnum"; color: var(--muted); font-size: 0.85rem; }
 
 /* ── Links ────────────────────────────────────────────────────────────────── */
 
@@ -1173,6 +1188,25 @@ input[type="search"]::placeholder { color: #c9cdd6; }
 .maplibregl-popup-content span { color: var(--muted); font-size: .75rem; }
 
 /* ── Max HR control ───────────────────────────────────────────────────────── */
+
+.training-pattern-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 700px) {
+    .training-pattern-grid { grid-template-columns: 1fr; }
+}
+
+.pattern-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--muted);
+    margin: 0 0 0.25rem;
+}
 
 .maxhr-control {
     display: flex;

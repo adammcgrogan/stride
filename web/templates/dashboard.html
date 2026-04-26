@@ -30,7 +30,7 @@
     </div>
 </div>
 
-<div class="stat-grid" id="streak-grid" style="display:none">
+<div class="stat-grid" id="streak-grid">
     <div class="stat-card">
         <span class="stat-label">Current Streak</span>
         <span class="stat-value" id="streak-current">—</span>
@@ -62,20 +62,26 @@
         <div class="card-header">
             <h2>By Sport</h2>
         </div>
-        <table>
-            <thead>
-                <tr><th>Sport</th><th>Count</th><th>Distance</th></tr>
-            </thead>
-            <tbody>
-            {{range .Sports}}
-                <tr>
-                    <td>{{.SportType}}</td>
-                    <td>{{.Count}}</td>
-                    <td>{{printf "%.0f km" (divFloat .Distance 1000)}}</td>
-                </tr>
-            {{end}}
-            </tbody>
-        </table>
+        <div class="sport-bar-list">
+        {{range .Sports}}
+            <div class="sport-bar-row">
+                <span class="sport-bar-label">{{.SportType}}</span>
+                <div class="sport-bar-track"><div class="sport-bar-fill" data-count="{{.Count}}" style="width:0%"></div></div>
+                <span class="sport-bar-meta">
+                    <strong>{{.Count}}</strong>
+                    <span>{{printf "%.0f km" (divFloat .Distance 1000)}}</span>
+                </span>
+            </div>
+        {{end}}
+        </div>
+        <script>
+        (function(){
+            const fills = document.querySelectorAll('.sport-bar-fill[data-count]');
+            if (!fills.length) return;
+            const max = Math.max(...[...fills].map(f => +f.dataset.count));
+            fills.forEach(f => { f.style.width = (+f.dataset.count / max * 100).toFixed(1) + '%'; });
+        })();
+        </script>
     </section>
 </div>
 

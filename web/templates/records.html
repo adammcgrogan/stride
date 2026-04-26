@@ -18,6 +18,10 @@
     </div>
 </div>
 
+<div id="no-sport-results" class="card empty-state" style="display:none">
+    No records for this sport yet.
+</div>
+
 {{range .Records}}
 <section class="records-section" data-sport="{{.SportType}}">
 
@@ -95,9 +99,12 @@ document.querySelectorAll('#sport-filter-bar .period-btn').forEach(btn => {
         document.querySelectorAll('#sport-filter-bar .period-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         const sport = btn.dataset.sport;
-        document.querySelectorAll('.records-section').forEach(section => {
+        const sections = document.querySelectorAll('.records-section');
+        sections.forEach(section => {
             section.style.display = (!sport || section.dataset.sport === sport) ? '' : 'none';
         });
+        const anyVisible = [...sections].some(s => s.style.display !== 'none');
+        document.getElementById('no-sport-results').style.display = anyVisible ? 'none' : '';
     });
 });
 </script>

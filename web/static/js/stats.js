@@ -3,6 +3,8 @@
 let allActivities = [];
 let apexChart     = null;
 let hrZoneChart   = null;
+let dayChart      = null;
+let hourChart     = null;
 let maxHR         = 190;
 
 // ── filters ───────────────────────────────────────────────────────────────────
@@ -129,89 +131,59 @@ function updateSportTable(activities) {
     }).join('');
 }
 
-// ── day/hour heatmap ──────────────────────────────────────────────────────────
+// ── training pattern charts ───────────────────────────────────────────────────
 
-function renderDayHourHeatmap(activities) {
-    const grid = Array.from({ length: 7 }, () => new Array(24).fill(0));
+function renderTrainingPattern(activities) {
+    const dayCounts  = new Array(7).fill(0);
+    const hourCounts = new Array(24).fill(0);
+
     for (const a of activities) {
         const d    = new Date(a.StartDateLocal.slice(0, 10) + 'T00:00:00');
         const dow  = (d.getDay() + 6) % 7;
         const hour = parseInt(a.StartDateLocal.slice(11, 13), 10);
-        if (!isNaN(dow) && !isNaN(hour)) grid[dow][hour]++;
+        if (!isNaN(dow))  dayCounts[dow]++;
+        if (!isNaN(hour)) hourCounts[hour]++;
     }
 
-    const maxVal = Math.max(...grid.flat(), 1);
-    const DAYS   = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const CELL = 16, GAP = 3, STEP = CELL + GAP;
-    const LEFT = 32, TOP = 22;
-    const ns   = 'http://www.w3.org/2000/svg';
-    const svg  = document.createElementNS(ns, 'svg');
-    svg.setAttribute('viewBox', `0 0 ${LEFT + 24 * STEP} ${TOP + 7 * STEP}`);
-    svg.style.cssText = 'display:block;width:100%;height:auto;min-width:400px';
+    const DAYS  = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const HOURS = Array.from({ length: 24 }, (_, h) =>
+        h === 0 ? '12am' : h === 12 ? '12pm' : h < 12 ? `${h}am` : `${h - 12}pm`
+    );
 
-    for (let h = 0; h < 24; h += 3) {
-        const label = h === 0 ? '12am' : h === 12 ? '12pm' : h < 12 ? h + 'am' : (h - 12) + 'pm';
-        const t = document.createElementNS(ns, 'text');
-        t.setAttribute('x', LEFT + h * STEP + CELL / 2);
-        t.setAttribute('y', TOP - 8);
-        t.setAttribute('font-size', '9'); t.setAttribute('fill', '#9ca3af');
-        t.setAttribute('text-anchor', 'middle');
-        t.setAttribute('font-family', 'Inter, system-ui, sans-serif');
-        t.textContent = label;
-        svg.appendChild(t);
-    }
+    const base = {
+        chart: {
+            type: 'bar', height: 220,
+            fontFamily: 'Inter, system-ui, sans-serif',
+            toolbar: { show: false }, animations: { enabled: false }, background: 'transparent',
+        },
+        colors:      ['#FC4C02'],
+        plotOptions: { bar: { borderRadius: 4, columnWidth: '60%' } },
+        dataLabels:  { enabled: false },
+        legend:      { show: false },
+        grid:        { borderColor: 'rgba(15,17,23,.06)', strokeDashArray: 4, xaxis: { lines: { show: false } } },
+        yaxis:       { labels: { style: { colors: '#94a3b8', fontSize: '11px' } } },
+        tooltip:     { theme: 'dark', y: { formatter: v => v + ' activit' + (v === 1 ? 'y' : 'ies') } },
+    };
 
-    for (let d = 0; d < 7; d++) {
-        const t = document.createElementNS(ns, 'text');
-        t.setAttribute('x', LEFT - 4);
-        t.setAttribute('y', TOP + d * STEP + CELL - 3);
-        t.setAttribute('font-size', '9'); t.setAttribute('fill', '#9ca3af');
-        t.setAttribute('text-anchor', 'end');
-        t.setAttribute('font-family', 'Inter, system-ui, sans-serif');
-        t.textContent = DAYS[d];
-        svg.appendChild(t);
-    }
+    const xStyle = { labels: { style: { colors: '#94a3b8', fontSize: '11px' } }, axisBorder: { show: false }, axisTicks: { show: false } };
 
-    const tip = (() => {
-        let el = document.getElementById('dh-heatmap-tip');
-        if (!el) {
-            el = document.createElement('div');
-            el.id = 'dh-heatmap-tip';
-            el.className = 'heatmap-tip';
-            document.body.appendChild(el);
-        }
-        return el;
-    })();
+    if (dayChart)  { dayChart.destroy();  dayChart  = null; }
+    if (hourChart) { hourChart.destroy(); hourChart = null; }
 
-    for (let d = 0; d < 7; d++) {
-        for (let h = 0; h < 24; h++) {
-            const count     = grid[d][h];
-            const intensity = count / maxVal;
-            const fill      = count === 0
-                ? '#ebedf0'
-                : `rgba(252,76,2,${(0.15 + intensity * 0.85).toFixed(2)})`;
-            const rect = document.createElementNS(ns, 'rect');
-            rect.setAttribute('x', LEFT + h * STEP); rect.setAttribute('y', TOP + d * STEP);
-            rect.setAttribute('width', CELL); rect.setAttribute('height', CELL);
-            rect.setAttribute('rx', 3); rect.setAttribute('fill', fill);
-            const hourLabel = h === 0 ? '12am' : h === 12 ? '12pm'
-                : h < 12 ? h + 'am' : (h - 12) + 'pm';
-            const tipText = `${DAYS[d]} ${hourLabel} · ${count} activit${count === 1 ? 'y' : 'ies'}`;
-            rect.addEventListener('mouseenter', e => {
-                tip.textContent = tipText; tip.style.display = 'block';
-                tip.style.left = (e.clientX + 12) + 'px'; tip.style.top = (e.clientY - 34) + 'px';
-            });
-            rect.addEventListener('mousemove', e => {
-                tip.style.left = (e.clientX + 12) + 'px'; tip.style.top = (e.clientY - 34) + 'px';
-            });
-            rect.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
-            svg.appendChild(rect);
-        }
-    }
+    dayChart = new ApexCharts(document.getElementById('training-by-day'), {
+        ...base,
+        series: [{ name: 'Activities', data: dayCounts }],
+        xaxis:  { categories: DAYS, ...xStyle },
+    });
 
-    const container = document.getElementById('day-hour-heatmap');
-    container.innerHTML = '';
-    container.appendChild(svg);
+    hourChart = new ApexCharts(document.getElementById('training-by-hour'), {
+        ...base,
+        series: [{ name: 'Activities', data: hourCounts }],
+        xaxis:  { categories: HOURS, tickAmount: 8, ...xStyle },
+    });
+
+    dayChart.render();
+    hourChart.render();
 }
 
 // ── HR zone breakdown ─────────────────────────────────────────────────────────
@@ -429,7 +401,15 @@ function updateChart(activities, priorActivities, dateFrom, dateTo, period) {
 
 function setActivePeriod(period) {
     document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
-    if (!period) return;
+    const dateGroup = document.getElementById('date-range-group');
+
+    if (!period || period === 'custom') {
+        if (period === 'custom') document.querySelector('[data-period="custom"]').classList.add('active');
+        dateGroup.style.display = 'flex';
+        return;
+    }
+
+    dateGroup.style.display = 'none';
     document.querySelector(`[data-period="${period}"]`).classList.add('active');
     const { from, to } = periodRange(period);
     document.getElementById('date-from').value = from || '';
@@ -452,7 +432,7 @@ function render() {
     updateSummaryCards(activities, priorActivities, priorLabel);
     updateSportTable(activities);
     updateChart(activities, priorActivities, dateFrom, dateTo, period);
-    renderDayHourHeatmap(activities);
+    renderTrainingPattern(activities);
     renderHRZones(activities);
 }
 
@@ -460,6 +440,11 @@ function render() {
 
 document.querySelectorAll('.period-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+        if (btn.dataset.period === 'custom') {
+            setActivePeriod('custom');
+            render();
+            return;
+        }
         location.hash = btn.dataset.period;
         setActivePeriod(btn.dataset.period);
         render();
@@ -469,7 +454,7 @@ document.querySelectorAll('.period-btn').forEach(btn => {
 ['date-from', 'date-to'].forEach(id => {
     document.getElementById(id).addEventListener('change', () => {
         history.replaceState(null, '', location.pathname);
-        setActivePeriod(null);
+        setActivePeriod('custom');
         render();
     });
 });

@@ -13,8 +13,9 @@
         <button class="period-btn" data-period="month">Month</button>
         <button class="period-btn" data-period="year">Year</button>
         <button class="period-btn" data-period="all">All time</button>
+        <button class="period-btn" data-period="custom">Custom</button>
     </div>
-    <div class="filter-group">
+    <div class="filter-group" id="date-range-group" style="display:none">
         <input type="date" id="date-from" title="From">
         <span class="date-sep">—</span>
         <input type="date" id="date-to" title="To">
@@ -52,6 +53,7 @@
                 <th>Name</th>
                 <th>Sport</th>
                 <th>Distance</th>
+                <th>Pace</th>
                 <th>Time</th>
                 <th>Elevation</th>
                 <th>Date</th>
