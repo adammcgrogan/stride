@@ -183,6 +183,6 @@ document.getElementById('act-search').addEventListener('input', render);
         select.appendChild(option);
     }
 
-    setActivePeriod(location.hash.slice(1) || 'all');
+    setActivePeriod(location.hash.slice(1) || 'week');
     render();
 })();
