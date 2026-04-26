@@ -1692,13 +1692,14 @@ html[data-theme="dark"] .seed-banner { background: rgba(252,76,2,.08); }
 
 /* ── Sidebar toggles (theme + units) ──────────────────────────────────────── */
 
-.sidebar-toggles {
+.sync-actions {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    padding: 0.875rem 0.625rem 0;
-    border-top: 1px solid rgba(255,255,255,.06);
-    margin-top: 1rem;
+}
+
+.sync-actions .sync-btn {
+    flex: 1;
 }
 
 .theme-toggle,
