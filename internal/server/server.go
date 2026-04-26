@@ -39,6 +39,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("DELETE /goals/{id}", h.DeleteGoal)
 	s.mux.HandleFunc("/map", h.Map)
 	s.mux.HandleFunc("GET /api/polylines", h.APIPolylines)
+	s.mux.HandleFunc("GET /api/progress", h.APIProgress)
 	s.mux.HandleFunc("GET /api/settings", h.APIGetSettings)
 	s.mux.HandleFunc("PATCH /api/settings", h.APIPatchSettings)
 	s.mux.HandleFunc("/api/activities", h.APIActivities)

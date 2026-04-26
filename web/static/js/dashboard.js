@@ -1,34 +1,34 @@
 'use strict';
 
-async function init() {
-    const resp = await fetch('/api/activities?limit=10000');
-    if (!resp.ok) return;
-    const activities = await resp.json() || [];
-    renderWeeklyChart(activities);
-    renderStreaks(activities);
-}
+let dashboardActivities = [];
+let weeklyChart = null;
 
 function renderWeeklyChart(activities) {
-    const kmByWeek = {};
+    const distByWeek = {};
     for (const activity of activities) {
         const weekStart = isoWeekStart(activity.StartDateLocal.slice(0, 10));
-        kmByWeek[weekStart] = (kmByWeek[weekStart] || 0) + activity.Distance / 1000;
+        distByWeek[weekStart] = (distByWeek[weekStart] || 0) + activity.Distance;
     }
 
     const now        = new Date();
     const thisMonday = new Date(now);
     thisMonday.setDate(now.getDate() - ((now.getDay() || 7) - 1));
 
-    const categories = [];
+    const categories   = [];
     const distanceData = [];
+    const divisor      = getUnits() === 'mi' ? 1609.344 : 1000;
+    const unitLabel    = getUnits() === 'mi' ? 'mi' : 'km';
+
     for (let weeksAgo = 15; weeksAgo >= 0; weeksAgo--) {
         const weekDate = new Date(thisMonday);
         weekDate.setDate(thisMonday.getDate() - weeksAgo * 7);
         categories.push(weekDate.toLocaleString('default', { month: 'short', day: 'numeric' }));
-        distanceData.push(+(kmByWeek[localDateStr(weekDate)] || 0).toFixed(1));
+        distanceData.push(+((distByWeek[localDateStr(weekDate)] || 0) / divisor).toFixed(1));
     }
 
-    new ApexCharts(document.getElementById('weeklyChart'), {
+    if (weeklyChart) { weeklyChart.destroy(); weeklyChart = null; }
+
+    weeklyChart = new ApexCharts(document.getElementById('weeklyChart'), {
         chart: {
             type: 'bar',
             height: 220,
@@ -49,16 +49,17 @@ function renderWeeklyChart(activities) {
             axisTicks:  { show: false },
         },
         yaxis: {
-            labels: { formatter: v => v.toFixed(0) + ' km', style: { colors: '#94a3b8', fontSize: '11px' } },
+            labels: { formatter: v => v.toFixed(0) + ' ' + unitLabel, style: { colors: '#94a3b8', fontSize: '11px' } },
         },
         colors:      ['#FC4C02', '#cbd5e1'],
         stroke:      { width: [0, 2], curve: 'smooth' },
         legend:      { show: false },
-        tooltip:     { enabledOnSeries: [0], y: { formatter: v => v.toFixed(1) + ' km' }, theme: 'dark' },
+        tooltip:     { enabledOnSeries: [0], y: { formatter: v => v.toFixed(1) + ' ' + unitLabel }, theme: 'dark' },
         plotOptions: { bar: { borderRadius: 5, columnWidth: '58%' } },
         dataLabels:  { enabled: false },
         grid: { borderColor: 'rgba(15,17,23,.06)', strokeDashArray: 4, xaxis: { lines: { show: false } } },
-    }).render();
+    });
+    weeklyChart.render();
 }
 
 function renderStreaks(activities) {
@@ -103,6 +104,19 @@ function renderStreaks(activities) {
     document.getElementById('streak-month').innerHTML       = `${activeThisMonth}<small> days</small>`;
     document.getElementById('streak-consistency').innerHTML = `${consistency}<small>%</small>`;
     document.getElementById('consistency-fill').style.width = consistency + '%';
+}
+
+// Exposed so the layout's units toggle can call render() to redraw the chart.
+function render() {
+    renderWeeklyChart(dashboardActivities);
+}
+
+async function init() {
+    const resp = await fetch('/api/activities?limit=10000');
+    if (!resp.ok) return;
+    dashboardActivities = await resp.json() || [];
+    renderWeeklyChart(dashboardActivities);
+    renderStreaks(dashboardActivities);
 }
 
 init();

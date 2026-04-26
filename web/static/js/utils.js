@@ -1,4 +1,4 @@
-// Shared utilities used by dashboard.js, activities.js, and stats.js.
+// Shared utilities used by all page scripts.
 
 function localDateStr(d) {
     const year  = d.getFullYear();
@@ -10,19 +10,39 @@ function localDateStr(d) {
 // Returns the Monday of the ISO week containing dateStr (YYYY-MM-DD).
 function isoWeekStart(dateStr) {
     const d          = new Date(dateStr + 'T00:00:00');
-    const dayOfWeek  = d.getDay() || 7; // treat Sunday (0) as 7 so Monday is always 1
+    const dayOfWeek  = d.getDay() || 7;
     d.setDate(d.getDate() - dayOfWeek + 1);
     return localDateStr(d);
 }
 
-function fmtKm(meters) {
+function getUnits() {
+    return localStorage.getItem('units') || 'km';
+}
+
+// Distance display — respects the km/mi preference.
+function fmtDist(meters) {
+    if (getUnits() === 'mi') return (meters / 1609.344).toFixed(1) + ' mi';
     return (meters / 1000).toFixed(1) + ' km';
 }
+
+// Kept for compatibility; delegates to fmtDist.
+function fmtKm(meters) { return fmtDist(meters); }
 
 function fmtTime(totalSeconds) {
     const hours   = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+}
+
+// Pace display — respects the km/mi preference.
+function fmtPace(metersPerSecond) {
+    if (!metersPerSecond) return '—';
+    const dist   = getUnits() === 'mi' ? 1609.344 : 1000;
+    const unit   = getUnits() === 'mi' ? '/mi' : '/km';
+    const secs   = dist / metersPerSecond;
+    const m      = Math.floor(secs / 60);
+    const s      = Math.round(secs % 60);
+    return `${m}:${String(s).padStart(2, '0')} ${unit}`;
 }
 
 // Returns {from, to} date strings covering the named period.
@@ -63,4 +83,15 @@ function movingAvg(data, windowSize) {
     });
 
     return isXYPairs ? data.map((d, i) => ({ x: d.x, y: averages[i] })) : averages;
+}
+
+// Converts elements with data-m (meters) or data-mps (m/s) attributes
+// to the current unit preference. Called on page load and unit toggle.
+function applyUnits() {
+    document.querySelectorAll('[data-m]').forEach(el => {
+        el.textContent = fmtDist(parseFloat(el.dataset.m));
+    });
+    document.querySelectorAll('[data-mps]').forEach(el => {
+        el.textContent = fmtPace(parseFloat(el.dataset.mps));
+    });
 }

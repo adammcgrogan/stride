@@ -71,12 +71,10 @@ function updateSummaryCards(activities, priorActivities, priorLabel) {
     const totalTime = activities.reduce((sum, a) => sum + a.MovingTime, 0);
 
     document.getElementById('s-count').textContent     = count;
-    document.getElementById('s-distance').innerHTML    = (totalDist / 1000).toFixed(1) + ' <small>km</small>';
+    document.getElementById('s-distance').textContent  = fmtDist(totalDist);
     document.getElementById('s-elevation').innerHTML   = Math.round(totalElev) + ' <small>m</small>';
     document.getElementById('s-time').textContent      = fmtTime(totalTime);
-    document.getElementById('s-avg').innerHTML         = count
-        ? (totalDist / count / 1000).toFixed(1) + ' <small>km</small>'
-        : '—';
+    document.getElementById('s-avg').textContent       = count ? fmtDist(totalDist / count) : '—';
 
     const deltaIds = ['s-count-delta', 's-distance-delta', 's-elevation-delta', 's-time-delta', 's-avg-delta'];
 
@@ -397,6 +395,88 @@ function updateChart(activities, priorActivities, dateFrom, dateTo, period) {
     apexChart.render();
 }
 
+// ── weather correlation ───────────────────────────────────────────────────────
+
+let weatherChart = null;
+
+function renderWeatherCorrelation(activities) {
+    const section = document.getElementById('weather-section');
+    const withData = activities.filter(a =>
+        a.WeatherCode >= 0 && a.Distance > 0 && a.MovingTime > 0
+    );
+    if (withData.length < 10) { section.style.display = 'none'; return; }
+    section.style.display = '';
+
+    const buckets = [
+        { label: '< 5°C',   min: -100, max: 5   },
+        { label: '5–10°C',  min: 5,    max: 10  },
+        { label: '10–15°C', min: 10,   max: 15  },
+        { label: '15–20°C', min: 15,   max: 20  },
+        { label: '20–25°C', min: 20,   max: 25  },
+        { label: '> 25°C',  min: 25,   max: 100 },
+    ];
+
+    const dist  = getUnits() === 'mi' ? 1609.344 : 1000;
+    const unit  = getUnits() === 'mi' ? '/mi' : '/km';
+
+    const data = buckets.map(b => {
+        const group = withData.filter(a => a.WeatherTemp >= b.min && a.WeatherTemp < b.max);
+        if (group.length < 3) return null;
+        const avgPace = group.reduce((s, a) => s + a.MovingTime / (a.Distance / dist), 0) / group.length;
+        return { label: b.label, pace: avgPace, count: group.length };
+    }).filter(Boolean);
+
+    if (data.length < 2) { section.style.display = 'none'; return; }
+
+    // Build insight: fastest vs slowest bucket
+    const sorted = [...data].sort((a, b) => a.pace - b.pace);
+    const best   = sorted[0];
+    const worst  = sorted[sorted.length - 1];
+    const diff   = Math.round(worst.pace - best.pace);
+    const insightEl = document.getElementById('weather-insight');
+    if (diff > 5) {
+        const m = Math.floor(diff / 60), s = diff % 60;
+        const diffStr = m > 0 ? `${m}m ${s}s` : `${s}s`;
+        insightEl.textContent = `You run ${diffStr}${unit} faster at ${best.label} than ${worst.label} on average.`;
+    } else {
+        insightEl.textContent = '';
+    }
+
+    const isDark    = document.documentElement.dataset.theme === 'dark';
+    const textColor = isDark ? '#8b97aa' : '#64748b';
+    const gridColor = isDark ? 'rgba(255,255,255,.05)' : 'rgba(15,17,23,.05)';
+
+    if (weatherChart) { weatherChart.destroy(); weatherChart = null; }
+
+    weatherChart = new ApexCharts(document.getElementById('weather-chart'), {
+        chart: { type: 'bar', height: 200, toolbar: { show: false }, background: 'transparent' },
+        series: [{ name: `Avg pace (min${unit})`, data: data.map(d => +d.pace.toFixed(1)) }],
+        xaxis: {
+            categories: data.map(d => d.label),
+            labels: { style: { colors: textColor, fontSize: '11px' } },
+            axisBorder: { show: false }, axisTicks: { show: false },
+        },
+        yaxis: {
+            reversed: true,
+            labels: {
+                style: { colors: textColor, fontSize: '11px' },
+                formatter: v => { const m = Math.floor(v/60), s = Math.round(v%60); return `${m}:${String(s).padStart(2,'0')}`; },
+            },
+        },
+        colors: ['#FC4C02'],
+        plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
+        grid: { borderColor: gridColor, strokeDashArray: 4 },
+        tooltip: {
+            theme: isDark ? 'dark' : 'light',
+            y: { formatter: (v, { dataPointIndex }) => {
+                const m = Math.floor(v/60), s = Math.round(v%60);
+                return `${m}:${String(s).padStart(2,'0')}${unit} (${data[dataPointIndex].count} runs)`;
+            }},
+        },
+    });
+    weatherChart.render();
+}
+
 // ── period buttons ────────────────────────────────────────────────────────────
 
 function setActivePeriod(period) {
@@ -434,6 +514,7 @@ function render() {
     updateChart(activities, priorActivities, dateFrom, dateTo, period);
     renderTrainingPattern(activities);
     renderHRZones(activities);
+    renderWeatherCorrelation(allActivities); // uses full dataset for richer correlation
 }
 
 // ── event wiring ──────────────────────────────────────────────────────────────

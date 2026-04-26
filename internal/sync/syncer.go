@@ -2,10 +2,12 @@ package sync
 
 import (
 	"log"
+	"time"
 
 	"stride/internal/config"
 	"stride/internal/db"
 	"stride/internal/strava"
+	"stride/internal/weather"
 )
 
 type Syncer struct {
@@ -41,7 +43,43 @@ func (s *Syncer) SyncAthlete(athleteID int64) error {
 	}
 
 	log.Printf("sync: upserted %d activities for athlete %d", len(activities), athleteID)
+
+	go s.fetchWeatherForAthlete(athleteID)
 	return nil
+}
+
+// fetchWeatherForAthlete fills in missing weather data for activities with GPS coordinates.
+// It runs in the background after each sync; at most 25 activities are processed per call
+// to avoid hammering the free Open-Meteo API.
+func (s *Syncer) fetchWeatherForAthlete(athleteID int64) {
+	if err := s.db.MarkNoLocationActivities(athleteID); err != nil {
+		log.Printf("weather: mark no-location: %v", err)
+	}
+
+	pending, err := s.db.GetActivitiesNeedingWeather(athleteID, 25)
+	if err != nil {
+		log.Printf("weather: get pending: %v", err)
+		return
+	}
+	if len(pending) == 0 {
+		return
+	}
+
+	log.Printf("weather: fetching for %d activities (athlete %d)", len(pending), athleteID)
+
+	for i, p := range pending {
+		if i > 0 {
+			time.Sleep(150 * time.Millisecond)
+		}
+		conditions, err := weather.Fetch(p.StartLat, p.StartLng, p.StartDateLocal)
+		if err != nil {
+			log.Printf("weather: activity %d: %v", p.ID, err)
+			continue
+		}
+		if err := s.db.SetActivityWeather(p.ID, conditions.TempC, conditions.WindKph, conditions.PrecipMM, conditions.Code); err != nil {
+			log.Printf("weather: store activity %d: %v", p.ID, err)
+		}
+	}
 }
 
 // getValidAccessToken returns the athlete's current access token, refreshing it

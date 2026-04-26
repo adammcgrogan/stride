@@ -34,7 +34,7 @@
             <div class="pr-card">
                 <span class="pr-card-dist">{{.Label}}</span>
                 <span class="pr-card-time">{{formatRunTime .Activity.MovingTime}}</span>
-                <span class="pr-card-pace">{{formatPace .Activity.AverageSpeed}}</span>
+                <span class="pr-card-pace"><span data-mps="{{.Activity.AverageSpeed}}">{{formatPace .Activity.AverageSpeed}}</span></span>
                 <div class="pr-card-footer">
                     <a href="/activities/{{.Activity.ID}}" class="pr-card-activity">{{.Activity.Name}}</a>
                     <span class="pr-card-date">{{formatDate .Activity.Date}}</span>
@@ -55,7 +55,7 @@
         {{with .Longest}}
         <div class="record-card">
             <span class="record-label">Longest</span>
-            <span class="record-value">{{fmtKm .Distance}}<small> km</small></span>
+            <span class="record-value"><span data-m="{{.Distance}}">{{fmtKm .Distance}} km</span></span>
             <span class="record-sub">{{formatDuration .MovingTime}}</span>
             <div class="record-footer">
                 <a href="/activities/{{.ID}}" class="record-activity">{{.Name}}</a>
@@ -67,8 +67,8 @@
         {{with .BestPace}}
         <div class="record-card">
             <span class="record-label">Best Pace</span>
-            <span class="record-value">{{formatPace .AverageSpeed}}</span>
-            <span class="record-sub">{{fmtKm .Distance}} km · {{formatDuration .MovingTime}}</span>
+            <span class="record-value"><span data-mps="{{.AverageSpeed}}">{{formatPace .AverageSpeed}}</span></span>
+            <span class="record-sub"><span data-m="{{.Distance}}">{{fmtKm .Distance}} km</span> · {{formatDuration .MovingTime}}</span>
             <div class="record-footer">
                 <a href="/activities/{{.ID}}" class="record-activity">{{.Name}}</a>
                 <span class="record-date">{{formatDate .Date}}</span>
@@ -80,7 +80,7 @@
         <div class="record-card">
             <span class="record-label">Most Elevation</span>
             <span class="record-value">{{formatFloat .Elevation}}<small> m</small></span>
-            <span class="record-sub">{{fmtKm .Distance}} km</span>
+            <span class="record-sub"><span data-m="{{.Distance}}">{{fmtKm .Distance}} km</span></span>
             <div class="record-footer">
                 <a href="/activities/{{.ID}}" class="record-activity">{{.Name}}</a>
                 <span class="record-date">{{formatDate .Date}}</span>
@@ -90,6 +90,22 @@
     </div>
 </section>
 {{end}}
+
+<section class="card" id="progression-card">
+    <div class="card-header">
+        <h2>Best Effort Progression</h2>
+        <div class="filter-group progression-tabs" id="progression-dist-tabs">
+            <button class="period-btn active" data-dist="5k">5K</button>
+            <button class="period-btn" data-dist="10k">10K</button>
+            <button class="period-btn" data-dist="half">Half</button>
+            <button class="period-btn" data-dist="marathon">Marathon</button>
+        </div>
+    </div>
+    <div id="progression-chart" style="min-height:200px"></div>
+    <p id="progression-empty" class="empty-state" style="display:none;padding:2rem 0">
+        Not enough matching activities to show progression yet.
+    </p>
+</section>
 
 {{end}}
 
@@ -108,4 +124,5 @@ document.querySelectorAll('#sport-filter-bar .period-btn').forEach(btn => {
     });
 });
 </script>
+<script src="/static/js/records.js"></script>
 {{end}}

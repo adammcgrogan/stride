@@ -78,3 +78,20 @@ func (h *Handler) APIActivities(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(activities)
 }
+
+// APIProgress returns a lightweight list of all activities (date, sport, distance, time)
+// used by the best-efforts progression chart on the Records page.
+func (h *Handler) APIProgress(w http.ResponseWriter, r *http.Request) {
+	athleteID := athleteIDFromCookie(r)
+	if athleteID == 0 {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	activities, err := h.db.GetActivitiesForProgress(athleteID)
+	if err != nil {
+		http.Error(w, "db error", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(activities)
+}

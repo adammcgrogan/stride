@@ -1609,3 +1609,91 @@ input[type="search"]::placeholder { color: #c9cdd6; }
 
     main { margin-left: 0; padding: 1.25rem; gap: 1.25rem; }
 }
+
+/* ── Dark Mode ─────────────────────────────────────────────────────────────── */
+
+html[data-theme="dark"] {
+    --bg:        #111318;
+    --card:      #1a1d24;
+    --text:      #f1f3f9;
+    --text-2:    #d1d5db;
+    --muted:     #8b97aa;
+    --border:    rgba(255,255,255,.07);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.2);
+    --shadow-md: 0 4px 18px rgba(0,0,0,.45), 0 2px 4px rgba(0,0,0,.2);
+    color-scheme: dark;
+}
+
+html[data-theme="dark"] td { border-bottom-color: rgba(255,255,255,.04); }
+html[data-theme="dark"] tbody tr:hover { background: #22262f; }
+html[data-theme="dark"] .period-btn:hover { background: #22262f; color: var(--text); }
+html[data-theme="dark"] .effort-card { background: var(--bg); }
+html[data-theme="dark"] .effort-card:hover,
+html[data-theme="dark"] .effort-card--active { background: var(--card); border-color: #3a3f4b; }
+html[data-theme="dark"] .goal-bar-track { background: #2a2f3a; }
+html[data-theme="dark"] .goal-card--done { border-color: #166534; background: #052e16; }
+html[data-theme="dark"] .goal-badge--sport { background: #22262f; }
+html[data-theme="dark"] .goal-badge--done { background: #14532d; color: #86efac; }
+html[data-theme="dark"] .goal-delete-btn:hover { background: #2d1515; color: #f87171; }
+html[data-theme="dark"] .sport-pill--default { background: #22262f; }
+html[data-theme="dark"] input[type="search"]::placeholder { color: #475569; }
+html[data-theme="dark"] .pred-far-row .pred-dist,
+html[data-theme="dark"] .pred-far-row .pred-time,
+html[data-theme="dark"] .pred-far-row .pred-pace { color: #475569; }
+html[data-theme="dark"] .sport-bar-track { background: rgba(255,255,255,.06); }
+html[data-theme="dark"] .pred-seed-row td { background: rgba(252,76,2,.08); }
+html[data-theme="dark"] .seed-banner { background: rgba(252,76,2,.08); }
+
+/* ── Sidebar toggles (theme + units) ──────────────────────────────────────── */
+
+.sidebar-toggles {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.875rem 0.625rem 0;
+    border-top: 1px solid rgba(255,255,255,.06);
+    margin-top: 1rem;
+}
+
+.theme-toggle,
+.units-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,.06);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #8b95a3;
+    cursor: pointer;
+    transition: background var(--ease), color var(--ease);
+    font-family: inherit;
+}
+
+.theme-toggle { padding: 0.38rem; width: 28px; height: 28px; }
+.units-toggle {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+}
+
+.theme-toggle:hover,
+.units-toggle:hover { background: rgba(255,255,255,.12); color: #e5e7eb; }
+
+.icon-sun  { display: none; }
+.icon-moon { display: block; }
+html[data-theme="dark"] .icon-sun  { display: block; }
+html[data-theme="dark"] .icon-moon { display: none; }
+
+/* ── Best Efforts Progression ─────────────────────────────────────────────── */
+
+.progression-tabs { flex-wrap: wrap; }
+
+/* ── Weather correlation ──────────────────────────────────────────────────── */
+
+.weather-insight {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 0.75rem;
+    line-height: 1.6;
+}

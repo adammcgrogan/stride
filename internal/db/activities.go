@@ -21,25 +21,39 @@ type ActivityRow struct {
 	Kilojoules         float64
 	SufferScore        float64
 	SummaryPolyline    string
+	StartLat           float64
+	StartLng           float64
+	WeatherTemp        float64
+	WeatherWind        float64
+	WeatherPrec        float64
+	WeatherCode        int
 }
 
 func (db *DB) UpsertActivity(athleteID int64, a *strava.Activity) error {
+	var lat, lng float64
+	if len(a.StartLatLng) == 2 {
+		lat, lng = a.StartLatLng[0], a.StartLatLng[1]
+	}
 	_, err := db.Exec(`
 		INSERT INTO activities (
 			id, athlete_id, name, type, sport_type, distance, moving_time, elapsed_time,
 			total_elevation_gain, start_date, start_date_local, timezone,
 			average_speed, max_speed, average_heartrate, max_heartrate,
-			average_cadence, average_watts, kilojoules, suffer_score, summary_polyline
-		) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+			average_cadence, average_watts, kilojoules, suffer_score, summary_polyline,
+			start_lat, start_lng
+		) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 		ON CONFLICT(id) DO UPDATE SET
 			name              = excluded.name,
 			average_heartrate = excluded.average_heartrate,
 			suffer_score      = excluded.suffer_score,
-			summary_polyline  = excluded.summary_polyline`,
+			summary_polyline  = excluded.summary_polyline,
+			start_lat         = excluded.start_lat,
+			start_lng         = excluded.start_lng`,
 		a.ID, athleteID, a.Name, a.Type, a.SportType, a.Distance, a.MovingTime, a.ElapsedTime,
 		a.TotalElevationGain, a.StartDate, a.StartDateLocal, a.Timezone,
 		a.AverageSpeed, a.MaxSpeed, a.AverageHeartrate, a.MaxHeartrate,
 		a.AverageCadence, a.AverageWatts, a.Kilojoules, a.SufferScore, a.Map.SummaryPolyline,
+		lat, lng,
 	)
 	return err
 }
@@ -47,7 +61,8 @@ func (db *DB) UpsertActivity(athleteID int64, a *strava.Activity) error {
 func (db *DB) GetActivities(athleteID int64, limit, offset int) ([]ActivityRow, error) {
 	rows, err := db.Query(`
 		SELECT id, name, sport_type, distance, moving_time, total_elevation_gain,
-		       start_date_local, average_speed, average_heartrate, suffer_score
+		       start_date_local, average_speed, average_heartrate, suffer_score,
+		       weather_temp, weather_code
 		FROM activities WHERE athlete_id = ?
 		ORDER BY start_date_local DESC
 		LIMIT ? OFFSET ?`,
@@ -60,15 +75,16 @@ func (db *DB) GetActivities(athleteID int64, limit, offset int) ([]ActivityRow, 
 
 	var activities []ActivityRow
 	for rows.Next() {
-		var activity ActivityRow
+		var a ActivityRow
 		if err := rows.Scan(
-			&activity.ID, &activity.Name, &activity.SportType, &activity.Distance,
-			&activity.MovingTime, &activity.TotalElevationGain, &activity.StartDateLocal,
-			&activity.AverageSpeed, &activity.AverageHeartrate, &activity.SufferScore,
+			&a.ID, &a.Name, &a.SportType, &a.Distance,
+			&a.MovingTime, &a.TotalElevationGain, &a.StartDateLocal,
+			&a.AverageSpeed, &a.AverageHeartrate, &a.SufferScore,
+			&a.WeatherTemp, &a.WeatherCode,
 		); err != nil {
 			return nil, err
 		}
-		activities = append(activities, activity)
+		activities = append(activities, a)
 	}
 	return activities, rows.Err()
 }
@@ -79,18 +95,111 @@ func (db *DB) GetActivity(athleteID, id int64) (*ActivityRow, error) {
 	row := db.QueryRow(`
 		SELECT id, name, sport_type, distance, moving_time, elapsed_time, total_elevation_gain,
 		       start_date_local, timezone, average_speed, max_speed, average_heartrate,
-		       max_heartrate, average_cadence, average_watts, kilojoules, suffer_score, summary_polyline
+		       max_heartrate, average_cadence, average_watts, kilojoules, suffer_score,
+		       summary_polyline, start_lat, start_lng, weather_temp, weather_wind,
+		       weather_precip, weather_code
 		FROM activities WHERE id = ? AND athlete_id = ?`, id, athleteID)
 
-	var activity ActivityRow
+	var a ActivityRow
 	err := row.Scan(
-		&activity.ID, &activity.Name, &activity.SportType, &activity.Distance,
-		&activity.MovingTime, &activity.ElapsedTime, &activity.TotalElevationGain,
-		&activity.StartDateLocal, &activity.Timezone, &activity.AverageSpeed, &activity.MaxSpeed,
-		&activity.AverageHeartrate, &activity.MaxHeartrate, &activity.AverageCadence,
-		&activity.AverageWatts, &activity.Kilojoules, &activity.SufferScore, &activity.SummaryPolyline,
+		&a.ID, &a.Name, &a.SportType, &a.Distance,
+		&a.MovingTime, &a.ElapsedTime, &a.TotalElevationGain,
+		&a.StartDateLocal, &a.Timezone, &a.AverageSpeed, &a.MaxSpeed,
+		&a.AverageHeartrate, &a.MaxHeartrate, &a.AverageCadence,
+		&a.AverageWatts, &a.Kilojoules, &a.SufferScore, &a.SummaryPolyline,
+		&a.StartLat, &a.StartLng, &a.WeatherTemp, &a.WeatherWind,
+		&a.WeatherPrec, &a.WeatherCode,
 	)
-	return &activity, err
+	return &a, err
+}
+
+// WeatherPending holds the minimal fields needed to fetch weather for an activity.
+type WeatherPending struct {
+	ID             int64
+	StartLat       float64
+	StartLng       float64
+	StartDateLocal string
+}
+
+// GetActivitiesNeedingWeather returns up to limit activities that have coordinates
+// but haven't had weather fetched yet (weather_code = -1).
+func (db *DB) GetActivitiesNeedingWeather(athleteID int64, limit int) ([]WeatherPending, error) {
+	rows, err := db.Query(`
+		SELECT id, start_lat, start_lng, start_date_local
+		FROM activities
+		WHERE athlete_id = ? AND weather_code = -1 AND start_lat != 0
+		ORDER BY start_date_local DESC
+		LIMIT ?`,
+		athleteID, limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var pending []WeatherPending
+	for rows.Next() {
+		var p WeatherPending
+		if err := rows.Scan(&p.ID, &p.StartLat, &p.StartLng, &p.StartDateLocal); err != nil {
+			return nil, err
+		}
+		pending = append(pending, p)
+	}
+	return pending, rows.Err()
+}
+
+// MarkNoLocationActivities sets weather_code = -2 for activities that have no
+// GPS coordinates, so they are permanently skipped during weather fetching.
+func (db *DB) MarkNoLocationActivities(athleteID int64) error {
+	_, err := db.Exec(`
+		UPDATE activities SET weather_code = -2
+		WHERE athlete_id = ? AND weather_code = -1 AND start_lat = 0`,
+		athleteID,
+	)
+	return err
+}
+
+// SetActivityWeather stores fetched weather conditions for a single activity.
+func (db *DB) SetActivityWeather(id int64, temp, wind, precip float64, code int) error {
+	_, err := db.Exec(
+		`UPDATE activities SET weather_temp=?, weather_wind=?, weather_precip=?, weather_code=? WHERE id=?`,
+		temp, wind, precip, code, id,
+	)
+	return err
+}
+
+// ProgressActivity holds the minimal fields needed for the best-efforts chart.
+type ProgressActivity struct {
+	Date     string
+	Sport    string
+	Distance float64
+	Time     int
+}
+
+// GetActivitiesForProgress returns all activities with distance and time,
+// ordered chronologically. Used by the best-efforts progression chart.
+func (db *DB) GetActivitiesForProgress(athleteID int64) ([]ProgressActivity, error) {
+	rows, err := db.Query(`
+		SELECT start_date_local, sport_type, distance, moving_time
+		FROM activities
+		WHERE athlete_id = ? AND distance > 0 AND moving_time > 0
+		ORDER BY start_date_local ASC`,
+		athleteID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var activities []ProgressActivity
+	for rows.Next() {
+		var a ProgressActivity
+		if err := rows.Scan(&a.Date, &a.Sport, &a.Distance, &a.Time); err != nil {
+			return nil, err
+		}
+		activities = append(activities, a)
+	}
+	return activities, rows.Err()
 }
 
 type Stats struct {

@@ -19,10 +19,7 @@ function escapeHtml(str) {
 
 function fmtPaceFromActivity(a) {
     if (!a.Distance || !a.MovingTime) return '—';
-    const secsPerKm = a.MovingTime / (a.Distance / 1000);
-    const m = Math.floor(secsPerKm / 60);
-    const s = Math.round(secsPerKm % 60);
-    return `${m}:${String(s).padStart(2, '0')} /km`;
+    return fmtPace(a.Distance / a.MovingTime); // m/s → fmtPace from utils.js
 }
 
 // ── filter ────────────────────────────────────────────────────────────────────
@@ -53,7 +50,7 @@ function updateSummaryCards() {
     const totalTime = filtered.reduce((sum, a) => sum + a.MovingTime, 0);
 
     document.getElementById('s-count').textContent = count;
-    document.getElementById('s-dist').innerHTML    = (totalDist / 1000).toFixed(1) + ' <small>km</small>';
+    document.getElementById('s-dist').textContent  = fmtDist(totalDist);
     document.getElementById('s-elev').innerHTML    = Math.round(totalElev) + ' <small>m</small>';
     document.getElementById('s-time').textContent  = fmtTime(totalTime);
 

@@ -90,4 +90,10 @@ var migrations = []string{
 		athlete_id INTEGER PRIMARY KEY REFERENCES athletes(id),
 		max_hr     INTEGER NOT NULL DEFAULT 190
 	)`,
+	`ALTER TABLE activities ADD COLUMN start_lat  REAL    NOT NULL DEFAULT 0`,
+	`ALTER TABLE activities ADD COLUMN start_lng  REAL    NOT NULL DEFAULT 0`,
+	`ALTER TABLE activities ADD COLUMN weather_temp  REAL    NOT NULL DEFAULT 0`,
+	`ALTER TABLE activities ADD COLUMN weather_wind  REAL    NOT NULL DEFAULT 0`,
+	`ALTER TABLE activities ADD COLUMN weather_precip REAL   NOT NULL DEFAULT 0`,
+	`ALTER TABLE activities ADD COLUMN weather_code  INTEGER NOT NULL DEFAULT -1`,
 }

@@ -75,6 +75,28 @@ var templateFuncs = template.FuncMap{
 		}
 		return fmt.Sprintf("%.0f", f)
 	},
+	"weatherDesc": func(code int) string {
+		switch {
+		case code == 0:
+			return "Clear sky"
+		case code <= 3:
+			return "Partly cloudy"
+		case code <= 48:
+			return "Foggy"
+		case code <= 57:
+			return "Drizzle"
+		case code <= 67:
+			return "Rain"
+		case code <= 77:
+			return "Snow"
+		case code <= 82:
+			return "Showers"
+		case code <= 86:
+			return "Snow showers"
+		default:
+			return "Thunderstorm"
+		}
+	},
 }
 
 func parseTemplates(files ...string) *template.Template {

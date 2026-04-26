@@ -60,6 +60,9 @@ let currentSeedIdx = 0;
     selectSport(sports[0]);
 })();
 
+// Exposed so the units toggle in layout can call render() to refresh pace labels.
+function render() { if (currentSport) selectSport(currentSport); }
+
 function selectSport(sport) {
     currentSport  = sport;
     currentSeedIdx = 0;
@@ -70,9 +73,9 @@ function selectSport(sport) {
 
     const category = SPORT_CATEGORY[sport] || 'running';
     document.getElementById('pace-col-header').textContent =
-        category === 'cycling'  ? 'Speed'        :
-        category === 'swimming' ? 'Pace /100m'   :
-                                  'Pace /km';
+        category === 'cycling'  ? (getUnits() === 'mi' ? 'Speed (mph)' : 'Speed (km/h)') :
+        category === 'swimming' ? 'Pace /100m' :
+                                  (getUnits() === 'mi' ? 'Pace /mi' : 'Pace /km');
 
     renderEfforts();
 }
@@ -174,14 +177,19 @@ function fmtSecs(s) {
 
 function fmtPace(distM, secs, category) {
     if (category === 'cycling') {
-        return `${((distM / 1000) / (secs / 3600)).toFixed(1)} km/h`;
+        const speedKph = (distM / 1000) / (secs / 3600);
+        return getUnits() === 'mi'
+            ? `${(speedKph / 1.60934).toFixed(1)} mph`
+            : `${speedKph.toFixed(1)} km/h`;
     }
     if (category === 'swimming') {
         const sper100 = secs / (distM / 100);
         return `${Math.floor(sper100 / 60)}:${pad(Math.round(sper100 % 60))}`;
     }
-    const spkm = secs / (distM / 1000);
-    return `${Math.floor(spkm / 60)}:${pad(Math.round(spkm % 60))}`;
+    const dist = getUnits() === 'mi' ? 1609.344 : 1000;
+    const unit = getUnits() === 'mi' ? '/mi' : '/km';
+    const sp   = secs / (distM / dist);
+    return `${Math.floor(sp / 60)}:${pad(Math.round(sp % 60))} ${unit}`;
 }
 
 function pad(n) { return String(n).padStart(2, '0'); }

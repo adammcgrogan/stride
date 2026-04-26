@@ -29,8 +29,9 @@ type Activity struct {
 	AverageCadence     float64 `json:"average_cadence"`
 	AverageWatts       float64 `json:"average_watts"`
 	Kilojoules         float64 `json:"kilojoules"`
-	SufferScore        float64 `json:"suffer_score"`
-	Map                Map     `json:"map"`
+	SufferScore        float64   `json:"suffer_score"`
+	Map                Map       `json:"map"`
+	StartLatLng        []float64 `json:"start_latlng"`
 }
 
 type Map struct {

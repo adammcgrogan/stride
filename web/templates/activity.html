@@ -10,7 +10,7 @@
 <div class="stat-grid">
     <div class="stat-card">
         <span class="stat-label">Distance</span>
-        <span class="stat-value">{{printf "%.2f" (divFloat .Distance 1000)}} <small>km</small></span>
+        <span class="stat-value"><span data-m="{{.Distance}}">{{printf "%.2f" (divFloat .Distance 1000)}} km</span></span>
     </div>
     <div class="stat-card">
         <span class="stat-label">Moving Time</span>
@@ -18,7 +18,7 @@
     </div>
     <div class="stat-card">
         <span class="stat-label">Pace</span>
-        <span class="stat-value">{{formatPace .AverageSpeed}}</span>
+        <span class="stat-value"><span data-mps="{{.AverageSpeed}}">{{formatPace .AverageSpeed}}</span></span>
     </div>
     <div class="stat-card">
         <span class="stat-label">Elevation</span>
@@ -55,6 +55,10 @@
         {{if gt .AverageWatts 0.0}}<dt>Avg Power</dt><dd>{{formatFloat .AverageWatts}} <small>W</small></dd>{{end}}
         {{if gt .Kilojoules 0.0}}<dt>Calories</dt><dd>{{formatFloat .Kilojoules}} <small>kJ</small></dd>{{end}}
         {{if gt .SufferScore 0.0}}<dt>Suffer Score</dt><dd>{{formatFloat .SufferScore}}</dd>{{end}}
+        {{if ge .WeatherCode 0}}
+        <dt>Weather</dt>
+        <dd>{{weatherDesc .WeatherCode}} · {{printf "%.0f" .WeatherTemp}}°C · {{printf "%.0f" .WeatherWind}} km/h wind{{if gt .WeatherPrec 0.0}} · {{printf "%.1f" .WeatherPrec}}mm precip{{end}}</dd>
+        {{end}}
     </dl>
 </section>
 {{end}}
