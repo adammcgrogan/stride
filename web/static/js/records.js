@@ -137,6 +137,101 @@ function renderProgressionChart(distKey, sport) {
     progressionChart.render();
 }
 
+// ── PR Velocity ───────────────────────────────────────────────────────────────
+
+function prSparklineSvg(prMoments, W, H) {
+    // prMoments: [{date, pace}] sorted chronologically, pace in s/unit (lower = faster)
+    if (prMoments.length < 2) return '';
+
+    const paces = prMoments.map(p => p.pace);
+    const minP  = Math.min(...paces);
+    const maxP  = Math.max(...paces);
+    const rangeP = maxP - minP || 1;
+
+    const dates  = prMoments.map(p => new Date(p.date + 'T00:00:00').getTime());
+    const minD   = dates[0];
+    const maxD   = dates[dates.length - 1];
+    const rangeD = maxD - minD || 1;
+
+    const pad = 3;
+    const pts = prMoments.map((p, i) => {
+        const x = pad + ((dates[i] - minD) / rangeD) * (W - pad * 2);
+        // faster pace = lower y (top of chart), so invert: high pace → high y
+        const y = pad + ((p.pace - minP) / rangeP) * (H - pad * 2);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+
+    return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="overflow:visible">
+        <polyline points="${pts.join(' ')}" fill="none" stroke="#FC4C02" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle cx="${pts[pts.length-1].split(',')[0]}" cy="${pts[pts.length-1].split(',')[1]}" r="2.5" fill="#FC4C02"/>
+    </svg>`;
+}
+
+function buildPRVelocityGrid(sport) {
+    const container = document.getElementById('pr-velocity-grid');
+    if (!container || !progressionData.length) { if (container) container.style.display = 'none'; return; }
+
+    const bands = bandsForSport(sport);
+    const dist  = getUnits() === 'mi' ? 1609.344 : 1000;
+    const unit  = getUnits() === 'mi' ? '/mi' : '/km';
+    const cards = [];
+
+    for (const band of bands) {
+        const matching = progressionData
+            .filter(a => {
+                if (sport && a.Sport !== sport) return false;
+                return a.Distance >= band.min && a.Distance <= band.max;
+            })
+            .sort((a, b) => a.Date.localeCompare(b.Date));
+
+        if (matching.length < 2) continue;
+
+        // Walk chronologically, record each time a new PR is set
+        let bestPace = Infinity;
+        const prMoments = [];
+        for (const a of matching) {
+            const pace = a.Time / (a.Distance / dist);
+            if (pace < bestPace) {
+                bestPace = pace;
+                prMoments.push({ date: a.Date.slice(0, 10), pace });
+            }
+        }
+
+        if (prMoments.length < 2) continue;
+
+        const firstPace = prMoments[0].pace;
+        const latestPace = prMoments[prMoments.length - 1].pace;
+        const improveSecs = Math.round(firstPace - latestPace); // positive = faster now
+
+        const fmtP = v => { const m = Math.floor(v/60), s = Math.round(v%60); return `${m}:${String(s).padStart(2,'0')}`; };
+        const improveStr = improveSecs > 0
+            ? `−${improveSecs}s${unit}`
+            : improveSecs < 0
+            ? `+${Math.abs(improveSecs)}s${unit} slower`
+            : 'unchanged';
+        const improveCls = improveSecs > 0 ? 'pr-vel-improve--pos' : improveSecs < 0 ? 'pr-vel-improve--neg' : '';
+
+        const sparkline = prSparklineSvg(prMoments, 80, 32);
+
+        cards.push(`
+            <div class="pr-vel-card" title="${prMoments.length} PR${prMoments.length === 1 ? '' : 's'} set — from ${fmtP(firstPace)}${unit} to ${fmtP(latestPace)}${unit}">
+                <div class="pr-vel-top">
+                    <span class="pr-vel-label">${band.label}</span>
+                    <span class="pr-vel-improve ${improveCls}">${improveStr}</span>
+                </div>
+                <div class="pr-vel-bottom">
+                    <div class="pr-vel-best">${fmtP(latestPace)}<span class="pr-vel-unit">${unit}</span></div>
+                    <div class="pr-vel-spark">${sparkline}</div>
+                </div>
+            </div>
+        `);
+    }
+
+    if (!cards.length) { container.style.display = 'none'; return; }
+    container.style.display = 'grid';
+    container.innerHTML = cards.join('');
+}
+
 (async function initRecords() {
     const card = document.getElementById('progression-card');
     if (!card) return;
@@ -145,12 +240,14 @@ function renderProgressionChart(distKey, sport) {
     if (!resp.ok) return;
     progressionData = await resp.json() || [];
 
+    buildPRVelocityGrid(activeSport);
     buildProgressionTabs(activeSport);
     renderProgressionChart(activeDist, activeSport);
 
     // Re-build tabs and chart when sport filter changes
     document.addEventListener('records-sport-changed', e => {
         activeSport = e.detail.sport;
+        buildPRVelocityGrid(activeSport);
         buildProgressionTabs(activeSport);
         renderProgressionChart(activeDist, activeSport);
     });

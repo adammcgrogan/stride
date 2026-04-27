@@ -51,6 +51,42 @@
     document.getElementById('tsb-zone').textContent = zoneLabel;
     document.getElementById('tsb-hero').classList.add(zoneCls);
 
+    // ── Race window forecast ────────────────────────────────────────────────
+    // Project CTL/ATL 28 days forward assuming complete rest (pure decay)
+    // and find when TSB first enters the +10…+25 "race-ready" window.
+
+    (function renderForecast() {
+        const callout = document.getElementById('forecast-callout');
+        if (!callout) return;
+
+        let fCTL = latest.ctl, fATL = latest.atl;
+        let peakDate = null, peakTSB = -Infinity;
+
+        for (let i = 1; i <= 28; i++) {
+            fCTL *= K42;
+            fATL *= K7;
+            const fTSB = fCTL - fATL;
+            if (fTSB > peakTSB) { peakTSB = fTSB; peakDate = i; }
+        }
+
+        if (peakDate === null || peakTSB < 5) { callout.style.display = 'none'; return; }
+
+        const raceDay = new Date(today);
+        raceDay.setDate(today.getDate() + peakDate);
+        const dayLabel = raceDay.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+        const inWindow = peakTSB >= 10 && peakTSB <= 25;
+        const msg = inWindow
+            ? `If you rest now, your form peaks around <strong>${dayLabel}</strong> — ideal race window (+${peakTSB.toFixed(0)}).`
+            : `If you rest now, form peaks around <strong>${dayLabel}</strong> at +${peakTSB.toFixed(0)}.${peakTSB > 25 ? ' More training first would boost fitness before tapering.' : ''}`;
+
+        callout.style.display = 'flex';
+        callout.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>${msg}</span>
+        `;
+    })();
+
     // ── Period filter ───────────────────────────────────────────────────────
 
     let activePeriod = '1y';
