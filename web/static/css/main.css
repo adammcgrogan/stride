@@ -1520,6 +1520,9 @@ input[type="search"]::placeholder { color: #c9cdd6; }
 .pr-col-name { width: 40%; }
 .pr-activity-link { color: var(--text-2); font-weight: 500; font-size: 0.83rem; }
 
+.num-col { text-align: right; }
+.similar-table th.num-col { text-align: right; }
+
 .splits-table .split-num  { font-weight: 700; color: var(--muted); width: 2rem; }
 .splits-table .split-fast { color: #16a34a; font-weight: 600; }
 .splits-table .split-slow { color: #dc2626; }

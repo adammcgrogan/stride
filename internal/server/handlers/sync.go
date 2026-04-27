@@ -9,7 +9,7 @@ import (
 const manualSyncCooldown = 5 * time.Minute
 
 func (h *Handler) SyncNow(w http.ResponseWriter, r *http.Request) {
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
@@ -42,7 +42,7 @@ func (h *Handler) SyncNow(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SyncStatus(w http.ResponseWriter, r *http.Request) {
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return

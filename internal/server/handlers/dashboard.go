@@ -8,7 +8,7 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 		return
@@ -38,7 +38,7 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl := parseTemplates("web/templates/layout.html", "web/templates/dashboard.html")
+	tmpl := parseTemplates("templates/layout.html", "templates/dashboard.html")
 	tmpl.ExecuteTemplate(w, "layout", map[string]any{
 		"Athlete": athlete,
 		"Stats":   stats,

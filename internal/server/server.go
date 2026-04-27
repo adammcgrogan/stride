@@ -1,12 +1,14 @@
 package server
 
 import (
+	"io/fs"
 	"net/http"
 
 	"stride/internal/config"
 	"stride/internal/db"
 	"stride/internal/server/handlers"
 	"stride/internal/sync"
+	"stride/web"
 )
 
 type Server struct {
@@ -25,7 +27,11 @@ func New(cfg *config.Config, db *db.DB, syncer *sync.Syncer) *Server {
 func (s *Server) routes() {
 	h := handlers.New(s.cfg, s.db, s.syncer)
 
-	s.mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
+	staticFS, err := fs.Sub(web.FS, "static")
+	if err != nil {
+		panic(err)
+	}
+	s.mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
 	s.mux.HandleFunc("/auth/login", h.AuthLogin)
 	s.mux.HandleFunc("/auth/callback", h.AuthCallback)
 	s.mux.HandleFunc("POST /activities/{id}/share", h.ShareEnable)

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -37,16 +36,6 @@ func (h *Handler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	setAthleteCookie(w, token.Athlete.ID)
+	h.setAthleteCookie(w, token.Athlete.ID)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-func setAthleteCookie(w http.ResponseWriter, athleteID int64) {
-	http.SetCookie(w, &http.Cookie{
-		Name:     "athlete_id",
-		Value:    fmt.Sprintf("%d", athleteID),
-		Path:     "/",
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	})
 }

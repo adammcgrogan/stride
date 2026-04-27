@@ -4,20 +4,27 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"stride/internal/db"
 )
 
+type activityDetailData struct {
+	*db.ActivityRow
+	SimilarRuns []db.SimilarActivity
+}
+
 func (h *Handler) Activities(w http.ResponseWriter, r *http.Request) {
-	if athleteIDFromCookie(r) == 0 {
+	if h.athleteIDFromCookie(r) == 0 {
 		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 		return
 	}
 
-	tmpl := parseTemplates("web/templates/layout.html", "web/templates/activities.html")
+	tmpl := parseTemplates("templates/layout.html", "templates/activities.html")
 	tmpl.ExecuteTemplate(w, "layout", nil)
 }
 
 func (h *Handler) ActivityDetail(w http.ResponseWriter, r *http.Request) {
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 		return
@@ -30,13 +37,23 @@ func (h *Handler) ActivityDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// athleteID is required so an athlete cannot read another's activity by ID.
 	activity, err := h.db.GetActivity(athleteID, activityID)
 	if err != nil {
 		http.Error(w, "activity not found", http.StatusNotFound)
 		return
 	}
 
-	tmpl := parseTemplates("web/templates/layout.html", "web/templates/activity.html")
-	tmpl.ExecuteTemplate(w, "layout", activity)
+	similar, err := h.db.GetSimilarActivities(
+		athleteID, activityID,
+		activity.SportType,
+		activity.StartLat, activity.StartLng,
+		activity.Distance,
+	)
+	if err != nil {
+		similar = nil
+	}
+
+	data := activityDetailData{ActivityRow: activity, SimilarRuns: similar}
+	tmpl := parseTemplates("templates/layout.html", "templates/activity.html")
+	tmpl.ExecuteTemplate(w, "layout", data)
 }

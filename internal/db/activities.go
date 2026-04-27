@@ -163,6 +163,58 @@ func (db *DB) GetActivityByToken(token string) (*ActivityRow, error) {
 	return &a, err
 }
 
+// SimilarActivity holds the fields shown in the "Similar runs" section.
+type SimilarActivity struct {
+	ID             int64
+	Name           string
+	StartDateLocal string
+	Distance       float64
+	MovingTime     int
+	AverageSpeed   float64
+}
+
+// GetSimilarActivities returns up to 5 activities by the same athlete that share
+// approximately the same start location (±~550 m bounding box) and sport type,
+// with distance within ±20% of the reference. Activities without GPS are skipped.
+func (db *DB) GetSimilarActivities(athleteID, excludeID int64, sport string, lat, lng, distance float64) ([]SimilarActivity, error) {
+	if lat == 0 && lng == 0 {
+		return nil, nil
+	}
+	const latDelta = 0.005
+	const lngDelta = 0.007
+	rows, err := db.Query(`
+		SELECT id, name, start_date_local, distance, moving_time, average_speed
+		FROM activities
+		WHERE athlete_id = ?
+		  AND id != ?
+		  AND sport_type = ?
+		  AND start_lat != 0
+		  AND start_lat BETWEEN ? AND ?
+		  AND start_lng BETWEEN ? AND ?
+		  AND distance BETWEEN ? AND ?
+		ORDER BY start_date_local DESC
+		LIMIT 5`,
+		athleteID, excludeID, sport,
+		lat-latDelta, lat+latDelta,
+		lng-lngDelta, lng+lngDelta,
+		distance*0.80, distance*1.20,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var similar []SimilarActivity
+	for rows.Next() {
+		var a SimilarActivity
+		if err := rows.Scan(&a.ID, &a.Name, &a.StartDateLocal, &a.Distance, &a.MovingTime, &a.AverageSpeed); err != nil {
+			return nil, err
+		}
+		similar = append(similar, a)
+	}
+	return similar, rows.Err()
+}
+
 // WeatherPending holds the minimal fields needed to fetch weather for an activity.
 type WeatherPending struct {
 	ID             int64

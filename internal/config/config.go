@@ -12,6 +12,13 @@ type Config struct {
 	StravaClientID     string
 	StravaClientSecret string
 	StravaRedirectURL  string
+	SessionSecret      string
+}
+
+// Production returns true when a SESSION_SECRET is set, enabling signed cookies
+// and the Secure cookie flag.
+func (c *Config) Production() bool {
+	return c.SessionSecret != ""
 }
 
 func Load() *Config {
@@ -22,6 +29,7 @@ func Load() *Config {
 		StravaClientID:     getEnv("STRAVA_CLIENT_ID", ""),
 		StravaClientSecret: getEnv("STRAVA_CLIENT_SECRET", ""),
 		StravaRedirectURL:  getEnv("STRAVA_REDIRECT_URL", "http://localhost:8080/auth/callback"),
+		SessionSecret:      getEnv("SESSION_SECRET", ""),
 	}
 }
 

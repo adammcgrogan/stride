@@ -87,6 +87,34 @@
     </dl>
 </section>
 
+{{if .SimilarRuns}}
+<section class="card">
+    <h2>Similar Runs</h2>
+    <table class="similar-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Name</th>
+                <th class="num-col">Distance</th>
+                <th class="num-col">Time</th>
+                <th class="num-col">Pace</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .SimilarRuns}}
+            <tr class="act-row" onclick="location.href='/activities/{{.ID}}'">
+                <td class="pr-date">{{formatDate .StartDateLocal}}</td>
+                <td><a href="/activities/{{.ID}}" class="pr-activity-link" onclick="event.stopPropagation()">{{.Name}}</a></td>
+                <td class="num-col act-pace"><span data-m="{{.Distance}}">{{printf "%.2f" (divFloat .Distance 1000)}} km</span></td>
+                <td class="num-col act-pace">{{formatDuration .MovingTime}}</td>
+                <td class="num-col act-pace"><span data-mps="{{.AverageSpeed}}">{{formatPace .AverageSpeed}}</span></td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+</section>
+{{end}}
+
 <section class="card share-panel">
     <div class="share-panel-top">
         <div class="share-panel-info">

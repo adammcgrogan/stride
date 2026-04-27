@@ -24,7 +24,7 @@ func generateToken() (string, error) {
 // If the activity already has a token, the existing one is returned unchanged.
 // POST /activities/{id}/share
 func (h *Handler) ShareEnable(w http.ResponseWriter, r *http.Request) {
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
@@ -62,7 +62,7 @@ func (h *Handler) ShareEnable(w http.ResponseWriter, r *http.Request) {
 // ShareDisable revokes the share token, making the activity private again.
 // DELETE /activities/{id}/share
 func (h *Handler) ShareDisable(w http.ResponseWriter, r *http.Request) {
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
@@ -109,7 +109,7 @@ func (h *Handler) ShareView(w http.ResponseWriter, r *http.Request) {
 	baseURL := fmt.Sprintf("%s://%s", scheme, r.Host)
 
 	data := sharePageData{ActivityRow: activity, BaseURL: baseURL}
-	tmpl := parseTemplates("web/templates/share_layout.html", "web/templates/share.html")
+	tmpl := parseTemplates("templates/share_layout.html", "templates/share.html")
 	tmpl.ExecuteTemplate(w, "share_layout", data)
 }
 

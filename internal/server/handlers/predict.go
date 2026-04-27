@@ -37,7 +37,7 @@ type PredictSeed struct {
 }
 
 func (h *Handler) Predict(w http.ResponseWriter, r *http.Request) {
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 		return
@@ -81,7 +81,7 @@ func (h *Handler) Predict(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl := parseTemplates("web/templates/layout.html", "web/templates/predict.html")
+	tmpl := parseTemplates("templates/layout.html", "templates/predict.html")
 	tmpl.ExecuteTemplate(w, "layout", map[string]any{
 		"SeedsJSON": template.JS(seedsJSON),
 	})

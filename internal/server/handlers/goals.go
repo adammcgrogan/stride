@@ -12,7 +12,7 @@ import (
 )
 
 func (h *Handler) Goals(w http.ResponseWriter, r *http.Request) {
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 		return
@@ -39,7 +39,7 @@ func (h *Handler) Goals(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl := parseTemplates("web/templates/layout.html", "web/templates/goals.html")
+	tmpl := parseTemplates("templates/layout.html", "templates/goals.html")
 	tmpl.ExecuteTemplate(w, "layout", map[string]any{
 		"GoalsJSON": template.JS(goalsJSON),
 		"Sports":    sports,
@@ -47,7 +47,7 @@ func (h *Handler) Goals(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CreateGoal(w http.ResponseWriter, r *http.Request) {
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
@@ -93,7 +93,7 @@ func (h *Handler) CreateGoal(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeleteGoal(w http.ResponseWriter, r *http.Request) {
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return

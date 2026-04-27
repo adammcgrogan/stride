@@ -1,15 +1,20 @@
 package handlers
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"stride/internal/config"
 	"stride/internal/db"
 	"stride/internal/sync"
+	"stride/web"
 )
 
 type Handler struct {
@@ -53,7 +58,7 @@ var templateFuncs = template.FuncMap{
 		if totalSeconds == 0 {
 			return "—"
 		}
-		hours   := totalSeconds / 3600
+		hours := totalSeconds / 3600
 		minutes := (totalSeconds % 3600) / 60
 		if hours > 0 {
 			return fmt.Sprintf("%dh %dm", hours, minutes)
@@ -146,14 +151,70 @@ var templateFuncs = template.FuncMap{
 }
 
 func parseTemplates(files ...string) *template.Template {
-	return template.Must(template.New("").Funcs(templateFuncs).ParseFiles(files...))
+	return template.Must(template.New("").Funcs(templateFuncs).ParseFS(web.FS, files...))
 }
 
-func athleteIDFromCookie(r *http.Request) int64 {
+// athleteIDFromCookie reads and verifies the session cookie.
+// In production (SESSION_SECRET set) the cookie value is HMAC-signed and
+// any tampered or unsigned cookie is rejected. In dev mode the raw integer
+// is accepted for convenience.
+func (h *Handler) athleteIDFromCookie(r *http.Request) int64 {
 	cookie, err := r.Cookie("athlete_id")
 	if err != nil {
 		return 0
 	}
-	id, _ := strconv.ParseInt(cookie.Value, 10, 64)
+	if h.cfg.SessionSecret == "" {
+		id, _ := strconv.ParseInt(cookie.Value, 10, 64)
+		return id
+	}
+	return verifySessionCookie(cookie.Value, h.cfg.SessionSecret)
+}
+
+// setAthleteCookie writes the session cookie. In production it is HMAC-signed
+// and marked Secure; in dev it is a plain integer for easy inspection.
+func (h *Handler) setAthleteCookie(w http.ResponseWriter, athleteID int64) {
+	value := strconv.FormatInt(athleteID, 10)
+	if h.cfg.SessionSecret != "" {
+		value = signSessionCookie(athleteID, h.cfg.SessionSecret)
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "athlete_id",
+		Value:    value,
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Secure:   h.cfg.Production(),
+	})
+}
+
+// signSessionCookie returns "{id}.{hex(HMAC-SHA256(secret, id))}".
+func signSessionCookie(athleteID int64, secret string) string {
+	msg := strconv.FormatInt(athleteID, 10)
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write([]byte(msg))
+	return msg + "." + hex.EncodeToString(mac.Sum(nil))
+}
+
+// verifySessionCookie parses a signed cookie value and returns the athlete ID,
+// or 0 if the signature is missing or invalid.
+func verifySessionCookie(value, secret string) int64 {
+	dot := strings.LastIndex(value, ".")
+	if dot < 0 {
+		return 0
+	}
+	msg := value[:dot]
+	sig := value[dot+1:]
+
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write([]byte(msg))
+	expected := hex.EncodeToString(mac.Sum(nil))
+
+	if !hmac.Equal([]byte(sig), []byte(expected)) {
+		return 0
+	}
+	id, err := strconv.ParseInt(msg, 10, 64)
+	if err != nil {
+		return 0
+	}
 	return id
 }

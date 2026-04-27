@@ -8,7 +8,7 @@ import (
 )
 
 func (h *Handler) APIGetSettings(w http.ResponseWriter, r *http.Request) {
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
@@ -23,7 +23,7 @@ func (h *Handler) APIGetSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) APIPatchSettings(w http.ResponseWriter, r *http.Request) {
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
@@ -43,7 +43,7 @@ func (h *Handler) APIPatchSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) APIPolylines(w http.ResponseWriter, r *http.Request) {
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
@@ -58,7 +58,7 @@ func (h *Handler) APIPolylines(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) APIActivities(w http.ResponseWriter, r *http.Request) {
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
@@ -83,7 +83,7 @@ func (h *Handler) APIActivities(w http.ResponseWriter, r *http.Request) {
 // APISplits returns the splits for a single activity, fetching from Strava and
 // caching in the DB on first access.
 func (h *Handler) APISplits(w http.ResponseWriter, r *http.Request) {
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
@@ -147,7 +147,7 @@ func (h *Handler) APISplits(w http.ResponseWriter, r *http.Request) {
 // APIProgress returns a lightweight list of all activities (date, sport, distance, time)
 // used by the best-efforts progression chart on the Records page.
 func (h *Handler) APIProgress(w http.ResponseWriter, r *http.Request) {
-	athleteID := athleteIDFromCookie(r)
+	athleteID := h.athleteIDFromCookie(r)
 	if athleteID == 0 {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
