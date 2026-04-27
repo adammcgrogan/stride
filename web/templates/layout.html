@@ -19,8 +19,24 @@
     <script src="/static/js/utils.js"></script>
 </head>
 <body>
-    <aside class="sidebar">
+    <header class="mobile-header">
         <div class="sidebar-brand">Str<em>i</em>de</div>
+        <button class="hamburger" id="hamburger" aria-label="Open menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+        </button>
+    </header>
+    <div class="nav-overlay" id="nav-overlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">Str<em>i</em>de</div>
+            <button class="sidebar-close" id="sidebar-close" aria-label="Close menu">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
         <nav>
             <a href="/" class="nav-link">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -142,6 +158,27 @@
         });
 
         applyUnits();
+
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('nav-overlay');
+        const hamburger = document.getElementById('hamburger');
+        const sidebarClose = document.getElementById('sidebar-close');
+
+        function openNav() {
+            sidebar.classList.add('open');
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeNav() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        hamburger.addEventListener('click', openNav);
+        sidebarClose.addEventListener('click', closeNav);
+        overlay.addEventListener('click', closeNav);
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNav(); });
     })();
     </script>
 </body>

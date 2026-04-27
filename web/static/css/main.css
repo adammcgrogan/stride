@@ -52,7 +52,6 @@ body {
     color: #fff;
     letter-spacing: -0.04em;
     padding: 0 0.625rem;
-    margin-bottom: 2.25rem;
     user-select: none;
 }
 
@@ -60,6 +59,79 @@ body {
     color: var(--accent);
     font-style: normal;
 }
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.25rem;
+}
+
+.sidebar-close {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: #8b95a3;
+    cursor: pointer;
+    padding: 0.4rem;
+    margin-right: 0.25rem;
+    border-radius: var(--radius-sm);
+    transition: color var(--ease), background var(--ease);
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sidebar-close:hover { color: #e5e7eb; background: rgba(255,255,255,.08); }
+
+/* ── Mobile nav header ───────────────────────────────────────────────────── */
+
+.mobile-header {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    background: var(--sidebar);
+    padding: 0 1rem;
+    z-index: 200;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.mobile-header .sidebar-brand {
+    font-size: 1.25rem;
+    padding: 0;
+}
+
+.hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: #8b95a3;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    transition: color var(--ease), background var(--ease);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.hamburger:hover { color: #e5e7eb; background: rgba(255,255,255,.08); }
+
+.nav-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.55);
+    z-index: 250;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+.nav-overlay.open { display: block; }
 
 .sidebar nav {
     display: flex;
@@ -1646,27 +1718,93 @@ input[type="search"]::placeholder { color: #c9cdd6; }
 /* ── Mobile ───────────────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
-    body { flex-direction: column; }
+    /* Show mobile header, show sidebar close button */
+    .mobile-header { display: flex; }
+    .sidebar-close  { display: flex; }
 
+    /* Sidebar becomes a slide-in drawer */
     .sidebar {
-        position: static;
-        width: 100%;
-        height: auto;
-        flex-direction: row;
-        align-items: center;
-        padding: 0.75rem 1rem;
-        gap: 1.5rem;
-        border-right: none;
-        border-bottom: 1px solid rgba(255,255,255,.06);
+        width: min(280px, 85vw);
+        transform: translateX(-100%);
+        transition: transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
+        z-index: 300;
+        padding-top: 1.25rem;
+        overflow-y: auto;
     }
 
-    .sidebar-brand { margin-bottom: 0; font-size: 1.15rem; }
-    .sidebar nav { flex-direction: row; gap: 0.2rem; }
-    .sidebar nav a { padding: 0.4rem 0.65rem; font-size: 0.8rem; border-left: none; border-bottom: 2px solid transparent; border-radius: 6px; }
-    .sidebar nav a.active { border-bottom-color: var(--accent); border-left-color: transparent; }
-    .sidebar nav a svg { display: none; }
+    .sidebar.open { transform: translateX(0); }
 
-    main { margin-left: 0; padding: 1.25rem; gap: 1.25rem; }
+    /* Nav items: full-width, comfortable touch targets */
+    .sidebar nav a {
+        padding: 0.75rem 0.625rem;
+        min-height: 44px;
+    }
+
+    /* Push main content below fixed mobile header */
+    main {
+        margin-left: 0;
+        padding: 1.25rem;
+        padding-top: calc(56px + 1.25rem);
+        gap: 1.25rem;
+    }
+
+    /* Stat grid: 2×2 */
+    .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stat-value { font-size: 1.55rem; }
+
+    /* Tables scroll horizontally inside cards */
+    .card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Stack overview header */
+    .overview-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    .overview-header h1 { font-size: 1.4rem; }
+
+    /* Fitness hero stacks vertically */
+    .fitness-hero {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    .fitness-hero-stats {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 1.25rem;
+    }
+    .fitness-hero-stat { align-items: flex-start; }
+
+    /* Records: single column */
+    .records-grid { grid-template-columns: 1fr; }
+
+    /* Goals: single column */
+    .goals-grid { grid-template-columns: 1fr; }
+
+    /* Effort cards: 2 columns */
+    .effort-grid { grid-template-columns: repeat(2, 1fr); }
+
+    /* Search input narrower */
+    input[type="search"] { width: 120px; }
+
+    /* Map shorter on mobile */
+    .map-page-map { height: 340px; }
+
+    /* PR velocity 2-col */
+    .pr-velocity-grid { grid-template-columns: repeat(2, 1fr); }
+
+    /* Sync button comfortable touch target */
+    .sync-btn { min-height: 44px; }
+
+    /* Share URL row: stack on very narrow */
+    .share-url-row { flex-wrap: wrap; }
+
+    /* Sport bar label width */
+    .sport-bar-row { grid-template-columns: 5rem 1fr auto; }
 }
 
 /* ── Dark Mode ─────────────────────────────────────────────────────────────── */
