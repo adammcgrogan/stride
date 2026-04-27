@@ -86,6 +86,90 @@
         {{end}}
     </dl>
 </section>
+
+<section class="card share-panel">
+    <div class="share-panel-top">
+        <div class="share-panel-info">
+            <div class="share-panel-status" id="share-status-label">
+                {{if .ShareToken}}
+                <span class="share-dot share-dot--public"></span>Public
+                {{else}}
+                <span class="share-dot share-dot--private"></span>Private
+                {{end}}
+            </div>
+            <p class="share-panel-desc" id="share-desc">
+                {{if .ShareToken}}Anyone with the link can view this activity.{{else}}Only you can see this activity.{{end}}
+            </p>
+        </div>
+        <label class="share-toggle" title="Toggle sharing">
+            <input type="checkbox" id="share-checkbox" {{if .ShareToken}}checked{{end}}>
+            <span class="share-toggle-track"><span class="share-toggle-thumb"></span></span>
+        </label>
+    </div>
+    <div class="share-url-row" id="share-url-row" {{if eq .ShareToken ""}}style="display:none"{{end}}>
+        <input type="text" class="share-url-input" id="share-url-input" readonly
+               data-token="{{.ShareToken}}">
+        <button class="share-copy-btn" id="share-copy-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy link
+        </button>
+    </div>
+</section>
+
 <script>const ACTIVITY_ID = {{.ID}};</script>
 <script src="/static/js/activity.js"></script>
+<script>
+(function(){
+    const checkbox  = document.getElementById('share-checkbox');
+    const urlRow    = document.getElementById('share-url-row');
+    const urlInput  = document.getElementById('share-url-input');
+    const copyBtn   = document.getElementById('share-copy-btn');
+    const statusLbl = document.getElementById('share-status-label');
+    const desc      = document.getElementById('share-desc');
+
+    // Set initial URL from server-rendered token
+    const initToken = urlInput.dataset.token;
+    if (initToken) urlInput.value = `${location.origin}/share/${initToken}`;
+
+    function setShared(token) {
+        const url = token ? `${location.origin}/share/${token}` : '';
+        urlInput.value = url;
+        urlRow.style.display = token ? 'flex' : 'none';
+        statusLbl.innerHTML = token
+            ? '<span class="share-dot share-dot--public"></span>Public'
+            : '<span class="share-dot share-dot--private"></span>Private';
+        desc.textContent = token
+            ? 'Anyone with the link can view this activity.'
+            : 'Only you can see this activity.';
+    }
+
+    checkbox.addEventListener('change', async () => {
+        checkbox.disabled = true;
+        try {
+            if (checkbox.checked) {
+                const res = await fetch(`/activities/${ACTIVITY_ID}/share`, {method: 'POST'});
+                if (!res.ok) throw new Error();
+                const {token} = await res.json();
+                setShared(token);
+            } else {
+                const res = await fetch(`/activities/${ACTIVITY_ID}/share`, {method: 'DELETE'});
+                if (!res.ok) throw new Error();
+                setShared('');
+            }
+        } catch {
+            checkbox.checked = !checkbox.checked;
+        } finally {
+            checkbox.disabled = false;
+        }
+    });
+
+    copyBtn.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(urlInput.value);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => {
+            copyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy link`;
+        }, 2000);
+    });
+})();
+</script>
 {{end}}

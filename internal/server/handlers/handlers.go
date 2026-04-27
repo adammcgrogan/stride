@@ -109,6 +109,18 @@ var templateFuncs = template.FuncMap{
 		}
 		return fmt.Sprintf("%ds", seconds)
 	},
+	"fullName": func(first, last string) string {
+		if first == "" && last == "" {
+			return ""
+		}
+		if last == "" {
+			return first
+		}
+		if first == "" {
+			return last
+		}
+		return first + " " + last
+	},
 	"weatherDesc": func(code int) string {
 		switch {
 		case code == 0:

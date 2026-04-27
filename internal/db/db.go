@@ -97,6 +97,7 @@ var migrations = []string{
 	`ALTER TABLE activities ADD COLUMN weather_precip REAL   NOT NULL DEFAULT 0`,
 	`ALTER TABLE activities ADD COLUMN weather_code  INTEGER NOT NULL DEFAULT -1`,
 	`ALTER TABLE activities ADD COLUMN splits_fetched INTEGER NOT NULL DEFAULT 0`,
+	`ALTER TABLE activities ADD COLUMN share_token TEXT NOT NULL DEFAULT ''`,
 	`CREATE TABLE IF NOT EXISTS activity_splits (
 		activity_id   INTEGER NOT NULL,
 		split_index   INTEGER NOT NULL,

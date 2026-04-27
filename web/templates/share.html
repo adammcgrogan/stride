@@ -1,0 +1,75 @@
+{{define "share_title"}}{{.Name}} — Stride{{end}}
+{{define "share_content"}}
+
+<div class="sp-header">
+    <a href="/" class="sp-brand">Str<em>i</em>de</a>
+    <a href="https://www.strava.com/activities/{{.ID}}" target="_blank" rel="noopener" class="sp-strava-link">View on Strava</a>
+</div>
+
+<div class="sp-activity-header">
+    {{with fullName .AthleteFirstname .AthleteLastname}}<p class="sp-athlete">{{.}}</p>{{end}}
+    <h1>{{.Name}}</h1>
+    <div class="sp-meta">
+        <span class="year-badge">{{.SportType}}</span>
+        <span class="sp-meta-date">{{formatDate .StartDateLocal}}</span>
+    </div>
+</div>
+
+<div class="stat-grid stat-grid--2col">
+    <div class="stat-card">
+        <span class="stat-label">Distance</span>
+        <span class="stat-value"><span data-m="{{.Distance}}">{{printf "%.2f" (divFloat .Distance 1000)}} km</span></span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Moving Time</span>
+        <span class="stat-value">{{formatDuration .MovingTime}}</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Pace</span>
+        <span class="stat-value"><span data-mps="{{.AverageSpeed}}">{{formatPace .AverageSpeed}}</span></span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Elevation</span>
+        <span class="stat-value">{{printf "%.0f" .TotalElevationGain}} <small>m</small></span>
+    </div>
+</div>
+
+{{if .SummaryPolyline}}
+<section class="card" style="padding:0;overflow:hidden">
+    <div id="map" style="height:340px;border-radius:inherit"></div>
+</section>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@mapbox/polyline@1.2.1/src/polyline.js"></script>
+<script>
+    const map = L.map('map');
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://carto.com/">CARTO</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        subdomains: 'abc'
+    }).addTo(map);
+    const coords = polyline.decode("{{.SummaryPolyline}}");
+    const line = L.polyline(coords, {color: '#FC4C02', weight: 3}).addTo(map);
+    map.fitBounds(line.getBounds());
+</script>
+{{end}}
+
+<section class="card">
+    <h2>Details</h2>
+    <dl>
+        <dt>Date</dt><dd>{{formatDate .StartDateLocal}}</dd>
+        <dt>Elapsed Time</dt><dd>{{formatDuration .ElapsedTime}}{{with restTime .ElapsedTime .MovingTime}} <small style="opacity:.6">({{.}} paused)</small>{{end}}</dd>
+        {{if gt .MaxSpeed 0.0}}<dt>Max Speed</dt><dd><span data-mps-max="{{.MaxSpeed}}">{{formatMaxSpeed .MaxSpeed}}</span></dd>{{end}}
+        {{if gt .AverageHeartrate 0.0}}<dt>Avg HR</dt><dd>{{formatFloat .AverageHeartrate}} <small>bpm</small></dd>{{end}}
+        {{if gt .MaxHeartrate 0.0}}<dt>Max HR</dt><dd>{{formatFloat .MaxHeartrate}} <small>bpm</small></dd>{{end}}
+        {{if gt .AverageCadence 0.0}}<dt>Avg Cadence</dt><dd>{{formatFloat .AverageCadence}} <small>rpm</small></dd>{{end}}
+        {{if gt .AverageWatts 0.0}}<dt>Avg Power</dt><dd>{{formatFloat .AverageWatts}} <small>W</small></dd>{{end}}
+        {{if gt .Kilojoules 0.0}}<dt>Energy</dt><dd>{{formatFloat .Kilojoules}} <small>kJ</small></dd>{{end}}
+        {{if gt .SufferScore 0.0}}<dt>Relative Effort</dt><dd>{{formatFloat .SufferScore}}</dd>{{end}}
+        {{if ge .WeatherCode 0}}
+        <dt>Weather</dt>
+        <dd>{{weatherDesc .WeatherCode}} · {{printf "%.0f" .WeatherTemp}}°C · {{printf "%.0f" .WeatherWind}} km/h wind{{if gt .WeatherPrec 0.0}} · {{printf "%.1f" .WeatherPrec}}mm precip{{end}}</dd>
+        {{end}}
+    </dl>
+</section>
+
+{{end}}

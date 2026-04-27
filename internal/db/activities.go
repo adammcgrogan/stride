@@ -27,6 +27,9 @@ type ActivityRow struct {
 	WeatherWind        float64
 	WeatherPrec        float64
 	WeatherCode        int
+	ShareToken         string
+	AthleteFirstname   string
+	AthleteLastname    string
 }
 
 func (db *DB) UpsertActivity(athleteID int64, a *strava.Activity) error {
@@ -97,7 +100,7 @@ func (db *DB) GetActivity(athleteID, id int64) (*ActivityRow, error) {
 		       start_date_local, timezone, average_speed, max_speed, average_heartrate,
 		       max_heartrate, average_cadence, average_watts, kilojoules, suffer_score,
 		       summary_polyline, start_lat, start_lng, weather_temp, weather_wind,
-		       weather_precip, weather_code
+		       weather_precip, weather_code, share_token
 		FROM activities WHERE id = ? AND athlete_id = ?`, id, athleteID)
 
 	var a ActivityRow
@@ -108,7 +111,54 @@ func (db *DB) GetActivity(athleteID, id int64) (*ActivityRow, error) {
 		&a.AverageHeartrate, &a.MaxHeartrate, &a.AverageCadence,
 		&a.AverageWatts, &a.Kilojoules, &a.SufferScore, &a.SummaryPolyline,
 		&a.StartLat, &a.StartLng, &a.WeatherTemp, &a.WeatherWind,
-		&a.WeatherPrec, &a.WeatherCode,
+		&a.WeatherPrec, &a.WeatherCode, &a.ShareToken,
+	)
+	return &a, err
+}
+
+// SetShareToken stores a share token for an activity owned by athleteID.
+func (db *DB) SetShareToken(athleteID, activityID int64, token string) error {
+	_, err := db.Exec(
+		`UPDATE activities SET share_token=? WHERE id=? AND athlete_id=?`,
+		token, activityID, athleteID,
+	)
+	return err
+}
+
+// RevokeShareToken clears the share token, making the activity private again.
+func (db *DB) RevokeShareToken(athleteID, activityID int64) error {
+	_, err := db.Exec(
+		`UPDATE activities SET share_token='' WHERE id=? AND athlete_id=?`,
+		activityID, athleteID,
+	)
+	return err
+}
+
+// GetActivityByToken returns an activity by its public share token, with no athlete check.
+// Athlete firstname/lastname are joined so the share page can credit the owner.
+func (db *DB) GetActivityByToken(token string) (*ActivityRow, error) {
+	row := db.QueryRow(`
+		SELECT a.id, a.name, a.sport_type, a.distance, a.moving_time, a.elapsed_time,
+		       a.total_elevation_gain, a.start_date_local, a.timezone, a.average_speed,
+		       a.max_speed, a.average_heartrate, a.max_heartrate, a.average_cadence,
+		       a.average_watts, a.kilojoules, a.suffer_score, a.summary_polyline,
+		       a.start_lat, a.start_lng, a.weather_temp, a.weather_wind,
+		       a.weather_precip, a.weather_code, a.share_token,
+		       at.firstname, at.lastname
+		FROM activities a
+		JOIN athletes at ON at.id = a.athlete_id
+		WHERE a.share_token=? AND a.share_token != ''`, token)
+
+	var a ActivityRow
+	err := row.Scan(
+		&a.ID, &a.Name, &a.SportType, &a.Distance,
+		&a.MovingTime, &a.ElapsedTime, &a.TotalElevationGain,
+		&a.StartDateLocal, &a.Timezone, &a.AverageSpeed, &a.MaxSpeed,
+		&a.AverageHeartrate, &a.MaxHeartrate, &a.AverageCadence,
+		&a.AverageWatts, &a.Kilojoules, &a.SufferScore, &a.SummaryPolyline,
+		&a.StartLat, &a.StartLng, &a.WeatherTemp, &a.WeatherWind,
+		&a.WeatherPrec, &a.WeatherCode, &a.ShareToken,
+		&a.AthleteFirstname, &a.AthleteLastname,
 	)
 	return &a, err
 }
