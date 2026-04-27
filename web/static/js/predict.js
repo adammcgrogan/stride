@@ -136,7 +136,8 @@ function renderPredictions() {
     tbody.innerHTML = '';
 
     for (const target of targets) {
-        const ratio    = Math.max(target.m, seed.DistanceM) / Math.min(target.m, seed.DistanceM);
+        const seedM    = seed.CanonicalM || seed.DistanceM;
+        const ratio    = Math.max(target.m, seedM) / Math.min(target.m, seedM);
         const isSeed   = ratio < 1.5;
         const isFar    = ratio > 5;
         const time     = isSeed ? seed.Seconds : riegel(seed.DistanceM, seed.Seconds, target.m);
