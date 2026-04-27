@@ -399,45 +399,60 @@ function updateChart(activities, priorActivities, dateFrom, dateTo, period) {
 
 let weatherChart = null;
 
+function linReg(points) {
+    const n  = points.length;
+    const sx = points.reduce((s, p) => s + p[0], 0);
+    const sy = points.reduce((s, p) => s + p[1], 0);
+    const sxx = points.reduce((s, p) => s + p[0] * p[0], 0);
+    const sxy = points.reduce((s, p) => s + p[0] * p[1], 0);
+    const m  = (n * sxy - sx * sy) / (n * sxx - sx * sx);
+    const b  = (sy - m * sx) / n;
+    return { m, b };
+}
+
 function renderWeatherCorrelation(activities) {
     const section = document.getElementById('weather-section');
     const withData = activities.filter(a =>
-        a.WeatherCode >= 0 && a.Distance > 0 && a.MovingTime > 0
+        a.WeatherTemp !== undefined && a.WeatherTemp !== null &&
+        a.Distance > 400 && a.MovingTime > 0
     );
     if (withData.length < 10) { section.style.display = 'none'; return; }
     section.style.display = '';
 
-    const buckets = [
-        { label: '< 5°C',   min: -100, max: 5   },
-        { label: '5–10°C',  min: 5,    max: 10  },
-        { label: '10–15°C', min: 10,   max: 15  },
-        { label: '15–20°C', min: 15,   max: 20  },
-        { label: '20–25°C', min: 20,   max: 25  },
-        { label: '> 25°C',  min: 25,   max: 100 },
-    ];
+    const dist = getUnits() === 'mi' ? 1609.344 : 1000;
+    const unit = getUnits() === 'mi' ? '/mi' : '/km';
 
-    const dist  = getUnits() === 'mi' ? 1609.344 : 1000;
-    const unit  = getUnits() === 'mi' ? '/mi' : '/km';
+    // Each point: [temp, pace_in_seconds_per_unit]
+    const points = withData.map(a => [
+        Math.round(a.WeatherTemp),
+        a.MovingTime / (a.Distance / dist),
+    ]);
 
-    const data = buckets.map(b => {
-        const group = withData.filter(a => a.WeatherTemp >= b.min && a.WeatherTemp < b.max);
-        if (group.length < 3) return null;
-        const avgPace = group.reduce((s, a) => s + a.MovingTime / (a.Distance / dist), 0) / group.length;
-        return { label: b.label, pace: avgPace, count: group.length };
-    }).filter(Boolean);
+    // Clip extreme pace outliers (> 3 std devs) to keep chart readable
+    const mean = points.reduce((s, p) => s + p[1], 0) / points.length;
+    const std  = Math.sqrt(points.reduce((s, p) => s + (p[1] - mean) ** 2, 0) / points.length);
+    const clipped = points.filter(p => Math.abs(p[1] - mean) < 3 * std);
 
-    if (data.length < 2) { section.style.display = 'none'; return; }
+    if (clipped.length < 5) { section.style.display = 'none'; return; }
 
-    // Build insight: fastest vs slowest bucket
-    const sorted = [...data].sort((a, b) => a.pace - b.pace);
-    const best   = sorted[0];
-    const worst  = sorted[sorted.length - 1];
-    const diff   = Math.round(worst.pace - best.pace);
+    const { m, b } = linReg(clipped);
+    const temps = clipped.map(p => p[0]);
+    const tMin  = Math.min(...temps);
+    const tMax  = Math.max(...temps);
+
+    const fmtPaceSecs = v => {
+        const mm = Math.floor(v / 60), ss = Math.round(v % 60);
+        return `${mm}:${String(ss).padStart(2, '0')}`;
+    };
+
+    // Insight: pace at +10°C warmer
     const insightEl = document.getElementById('weather-insight');
-    if (diff > 5) {
-        const m = Math.floor(diff / 60), s = diff % 60;
-        const diffStr = m > 0 ? `${m}m ${s}s` : `${s}s`;
-        insightEl.textContent = `You run ${diffStr}${unit} faster at ${best.label} than ${worst.label} on average.`;
+    if (m > 0) {
+        const slowdown = Math.abs(Math.round(m * 10));
+        insightEl.textContent = `Every 10°C warmer costs roughly ${slowdown}s${unit} — heat slows you down.`;
+    } else if (m < 0) {
+        const speedup = Math.abs(Math.round(m * 10));
+        insightEl.textContent = `Every 10°C cooler costs roughly ${speedup}s${unit} — cold air suits you.`;
     } else {
         insightEl.textContent = '';
     }
@@ -449,29 +464,55 @@ function renderWeatherCorrelation(activities) {
     if (weatherChart) { weatherChart.destroy(); weatherChart = null; }
 
     weatherChart = new ApexCharts(document.getElementById('weather-chart'), {
-        chart: { type: 'bar', height: 200, toolbar: { show: false }, background: 'transparent' },
-        series: [{ name: `Avg pace (min${unit})`, data: data.map(d => +d.pace.toFixed(1)) }],
+        chart: {
+            type: 'scatter', height: 240,
+            toolbar: { show: false }, background: 'transparent',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            animations: { enabled: false },
+        },
+        series: [
+            {
+                name: 'Activity',
+                type: 'scatter',
+                data: clipped.map(p => ({ x: p[0], y: +p[1].toFixed(1) })),
+            },
+            {
+                name: 'Trend',
+                type: 'line',
+                data: [
+                    { x: tMin, y: +(m * tMin + b).toFixed(1) },
+                    { x: tMax, y: +(m * tMax + b).toFixed(1) },
+                ],
+            },
+        ],
         xaxis: {
-            categories: data.map(d => d.label),
-            labels: { style: { colors: textColor, fontSize: '11px' } },
+            type: 'numeric',
+            title: { text: 'Temperature (°C)', style: { color: textColor, fontSize: '11px', fontWeight: 400 } },
+            labels: { formatter: v => Math.round(v) + '°', style: { colors: textColor, fontSize: '11px' } },
             axisBorder: { show: false }, axisTicks: { show: false },
         },
         yaxis: {
             reversed: true,
+            title: { text: `Pace (${unit})`, style: { color: textColor, fontSize: '11px', fontWeight: 400 } },
             labels: {
                 style: { colors: textColor, fontSize: '11px' },
-                formatter: v => { const m = Math.floor(v/60), s = Math.round(v%60); return `${m}:${String(s).padStart(2,'0')}`; },
+                formatter: fmtPaceSecs,
             },
         },
-        colors: ['#FC4C02'],
-        plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
-        grid: { borderColor: gridColor, strokeDashArray: 4 },
+        colors: ['#FC4C02', '#94a3b8'],
+        markers: { size: [3, 0] },
+        stroke:  { width: [0, 2], curve: 'straight', dashArray: [0, 4] },
+        fill:    { opacity: [0.55, 1] },
+        grid:    { borderColor: gridColor, strokeDashArray: 4 },
+        legend:  { show: false },
         tooltip: {
             theme: isDark ? 'dark' : 'light',
-            y: { formatter: (v, { dataPointIndex }) => {
-                const m = Math.floor(v/60), s = Math.round(v%60);
-                return `${m}:${String(s).padStart(2,'0')}${unit} (${data[dataPointIndex].count} runs)`;
-            }},
+            shared: false,
+            custom: ({ series, seriesIndex, dataPointIndex, w }) => {
+                if (seriesIndex === 1) return '';
+                const point = clipped[dataPointIndex];
+                return `<div style="padding:6px 10px;font-size:12px">${point[0]}°C — ${fmtPaceSecs(point[1])}${unit}</div>`;
+            },
         },
     });
     weatherChart.render();

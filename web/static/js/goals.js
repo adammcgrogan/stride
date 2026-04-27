@@ -65,8 +65,8 @@ const PERIOD_LABEL = {
     let hasActive = false, hasCompleted = false;
 
     for (const goal of GOALS) {
-        const { current, pct } = calcProgress(goal, activities);
-        const card = makeCard(goal, current, pct);
+        const { current, pct, fromDate, toDate } = calcProgress(goal, activities);
+        const card = makeCard(goal, current, pct, fromDate, toDate);
         if (pct >= 1) {
             completedGrid.appendChild(card);
             hasCompleted = true;
@@ -83,13 +83,19 @@ const PERIOD_LABEL = {
 function calcProgress(goal, activities) {
     const now = new Date();
     let fromDate = null;
+    let toDate   = null;
 
     if (goal.Period === 'week') {
         fromDate = isoWeekStart(localDateStr(now));
+        const end = new Date(fromDate + 'T00:00:00'); end.setDate(end.getDate() + 6);
+        toDate = localDateStr(end);
     } else if (goal.Period === 'month') {
         fromDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        toDate = localDateStr(end);
     } else if (goal.Period === 'year') {
         fromDate = `${now.getFullYear()}-01-01`;
+        toDate   = `${now.getFullYear()}-12-31`;
     }
 
     let filtered = activities;
@@ -106,7 +112,35 @@ function calcProgress(goal, activities) {
         case 'suffer_score': current = filtered.reduce((s, a) => s + (a.SufferScore || 0), 0); break;
     }
 
-    return { current, pct: Math.min(current / goal.Target, 1) };
+    return { current, pct: Math.min(current / goal.Target, 1), fromDate, toDate };
+}
+
+function trajectoryHtml(goal, current, fromDate, toDate) {
+    if (!fromDate || !toDate || goal.Period === 'all') return '';
+
+    const now         = new Date(); now.setHours(0, 0, 0, 0);
+    const start       = new Date(fromDate + 'T00:00:00');
+    const end         = new Date(toDate   + 'T00:00:00');
+    const totalDays   = Math.max(1, (end - start) / 86400000 + 1);
+    const elapsedDays = Math.max(1, (now - start) / 86400000);
+    const remaining   = Math.max(0, (end - now)   / 86400000);
+
+    if (elapsedDays < 1 || current <= 0) return '';
+
+    const ratePerDay    = current / elapsedDays;
+    const projected     = ratePerDay * totalDays;
+    const onTrack       = projected >= goal.Target * 0.95;
+
+    const unit = METRIC_UNIT[goal.Metric] || '';
+
+    if (onTrack) {
+        return `<span class="goal-trajectory goal-trajectory--on-track" title="Projected: ${projected.toFixed(1)} ${unit}">On track</span>`;
+    }
+
+    const needed = (goal.Target - current) / Math.max(1, remaining);
+    const neededStr = needed >= 1 ? needed.toFixed(1) : needed.toFixed(2);
+    const perLabel  = goal.Period === 'week' ? '/day' : goal.Period === 'month' ? '/day' : '/day';
+    return `<span class="goal-trajectory goal-trajectory--behind" title="Projected: ${projected.toFixed(1)} ${unit}">${neededStr} ${unit}${perLabel} needed</span>`;
 }
 
 function fmtValue(value, metric) {
@@ -173,15 +207,16 @@ function makeRing(pct) {
     </svg>`;
 }
 
-function makeCard(goal, current, pct) {
+function makeCard(goal, current, pct, fromDate, toDate) {
     const done = pct >= 1;
     const barColor = done ? '#22c55e' : '#FC4C02';
     const remaining = timeLeft(goal.Period);
+    const trajectory = done ? '' : trajectoryHtml(goal, current, fromDate, toDate);
 
     const footer = done
         ? `<span class="goal-footer-note goal-footer-note--done">Goal achieved!</span>`
-        : remaining
-            ? `<span class="goal-footer-note">${remaining}</span>`
+        : (trajectory || remaining)
+            ? `<div class="goal-footer-row">${trajectory}<span class="goal-footer-note">${remaining || ''}</span></div>`
             : '';
 
     const card = document.createElement('article');
