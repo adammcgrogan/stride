@@ -1,3 +1,4 @@
+{{define "title"}}Goals — Stride{{end}}
 {{define "content"}}
 <div class="overview-header">
     <div>
@@ -57,8 +58,8 @@
                     <option value="moving_time">Moving Time</option>
                     <option value="elevation">Elevation</option>
                     <option value="count">Activities</option>
-                    <option value="kilojoules">Kilojoules</option>
-                    <option value="suffer_score">Suffer Score</option>
+                    <option value="kilojoules" title="Total energy output in kilojoules, as recorded by a power meter or estimated by Strava">Kilojoules (energy)</option>
+                    <option value="suffer_score" title="Strava's Relative Effort score — a measure of how hard your activities felt based on heart rate. Typical weekly values range from 50 to 300.">Suffer Score</option>
                 </select>
             </div>
             <div class="goal-field">
@@ -73,6 +74,7 @@
             <div class="goal-field">
                 <label for="f-target">Target <span id="unit-label" class="unit-label">km</span></label>
                 <input type="number" id="f-target" name="target" min="0" step="any" placeholder="1000" required>
+                <p class="field-hint" id="metric-hint"></p>
             </div>
         </div>
         <button type="submit" class="goal-submit-btn">Save Goal</button>
@@ -81,4 +83,22 @@
 
 <script>const GOALS = {{.GoalsJSON}};</script>
 <script src="/static/js/goals.js"></script>
+<script>
+(function(){
+    const metricHints = {
+        distance:     'Total distance across all matching activities. Enter in kilometres (or miles if you have switched units).',
+        moving_time:  'Total moving time in hours — e.g. enter 50 for a goal of 50 hours of training.',
+        elevation:    'Total elevation climbed in metres.',
+        count:        'Number of individual activities.',
+        kilojoules:   'Total energy output in kJ. Only available for activities with a power meter.',
+        suffer_score: 'Strava Relative Effort — reflects intensity via heart rate. A hard 10 km run is roughly 50–80 pts.',
+    };
+    const metricSel  = document.getElementById('f-metric');
+    const hintEl     = document.getElementById('metric-hint');
+    if (!metricSel || !hintEl) return;
+    function updateHint() { hintEl.textContent = metricHints[metricSel.value] || ''; }
+    metricSel.addEventListener('change', updateHint);
+    updateHint();
+})();
+</script>
 {{end}}

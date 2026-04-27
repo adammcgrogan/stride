@@ -1515,6 +1515,12 @@ input[type="search"]::placeholder { color: #c9cdd6; }
 .pr-pace { font-feature-settings: "tnum"; color: var(--muted); font-size: 0.83rem; }
 .pr-col-name { width: 40%; }
 .pr-activity-link { color: var(--text-2); font-weight: 500; font-size: 0.83rem; }
+
+.splits-table .split-num  { font-weight: 700; color: var(--muted); width: 2rem; }
+.splits-table .split-fast { color: #16a34a; font-weight: 600; }
+.splits-table .split-slow { color: #dc2626; }
+.elev-up   { color: #16a34a; }
+.elev-down { color: #dc2626; }
 .pr-activity-link:hover { color: var(--accent); text-decoration: none; }
 .pr-date { color: var(--muted); font-size: 0.78rem; white-space: nowrap; }
 .pr-row-empty td { color: var(--muted); opacity: 0.5; }
@@ -1597,7 +1603,7 @@ input[type="search"]::placeholder { color: #c9cdd6; }
 
 .sync-label {
     font-size: 0.67rem;
-    color: #4b5563;
+    color: #64748b;
     padding: 0 0.625rem;
     margin-bottom: 0.15rem;
     letter-spacing: -0.005em;
@@ -1743,4 +1749,59 @@ html[data-theme="dark"] .icon-moon { display: none; }
     color: var(--muted);
     margin-top: 0.75rem;
     line-height: 1.6;
+}
+
+/* ── Field hints — small explanatory text below form controls ─────────────── */
+
+.field-hint {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 0.35rem;
+    line-height: 1.45;
+}
+
+/* ── Stat notes — small text below stat card values ──────────────────────── */
+
+.stat-note {
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: -0.005em;
+    line-height: 1.3;
+}
+
+/* ── Inline tooltip-style badge ───────────────────────────────────────────── */
+
+.info-tag {
+    display: inline-block;
+    font-size: 0.63rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    background: var(--border);
+    color: var(--muted);
+    padding: 0.1rem 0.4rem;
+    border-radius: var(--radius-full);
+    vertical-align: middle;
+    cursor: help;
+}
+
+/* ── Card subtitle ────────────────────────────────────────────────────────── */
+
+.card-subtitle {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: -0.75rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+}
+
+/* ── No-GPS notice on activity detail ────────────────────────────────────── */
+
+.no-gps-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--muted);
+    font-size: 0.875rem;
+    padding: 1.1rem 1.5rem;
 }

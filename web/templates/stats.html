@@ -1,6 +1,10 @@
+{{define "title"}}Stats — Stride{{end}}
 {{define "content"}}
 <div class="overview-header">
-    <h1>Stats</h1>
+    <div>
+        <h1>Stats</h1>
+        <p class="subtext">Aggregate numbers and patterns across your training history.</p>
+    </div>
 </div>
 
 <div class="stats-toolbar">
@@ -85,11 +89,12 @@
     <div class="card-header">
         <h2>Heart Rate Zones</h2>
         <div class="maxhr-control">
-            <label for="max-hr-input">Max HR</label>
-            <input type="number" id="max-hr-input" min="100" max="250" value="190">
+            <label for="max-hr-input" title="Set your actual max HR for accurate zone boundaries">Max HR</label>
+            <input type="number" id="max-hr-input" min="100" max="250" value="190" title="Your maximum heart rate in beats per minute">
             <span>bpm</span>
         </div>
     </div>
+    <p class="field-hint" style="margin-bottom:1rem">Zones are calculated as percentages of your max HR. Update the value above to match your personal max for accurate results. If unsure, a rough estimate is 220 minus your age.</p>
     <div id="hr-zones-chart"></div>
 </section>
 

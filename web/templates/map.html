@@ -1,6 +1,10 @@
+{{define "title"}}Route Map — Stride{{end}}
 {{define "content"}}
 <div class="overview-header">
-    <h1>Route Map</h1>
+    <div>
+        <h1>Route Map</h1>
+        <p class="subtext">All your routes on one map. Switch to Density view to see where you train most.</p>
+    </div>
 </div>
 
 <div class="stats-toolbar">
@@ -14,10 +18,10 @@
         </select>
     </div>
     <div class="filter-group" id="color-by-group">
-        <select id="color-by">
+        <select id="color-by" title="Choose how route lines are coloured">
             <option value="default">Colour: Default</option>
-            <option value="recency">Colour: Recency</option>
-            <option value="pace">Colour: Pace</option>
+            <option value="recency" title="Brighter = more recent activity">Colour: Recency</option>
+            <option value="pace" title="Brighter = faster pace">Colour: Pace</option>
         </select>
     </div>
     <span id="route-count" style="font-size:.82rem;color:var(--muted)"></span>

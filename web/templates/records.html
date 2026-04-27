@@ -1,6 +1,10 @@
+{{define "title"}}Personal Records — Stride{{end}}
 {{define "content"}}
 <div class="overview-header">
-    <h1>Personal Records</h1>
+    <div>
+        <h1>Personal Records</h1>
+        <p class="subtext">Your all-time bests across distances, pace, elevation, and more.</p>
+    </div>
 </div>
 
 {{if not .Records}}
@@ -29,7 +33,7 @@
 
     {{if .HasDistancePRs}}
     <div class="records-pr-block">
-        <p class="records-block-label">Distance PRs</p>
+        <p class="records-block-label">Distance PRs <span class="info-tag" title="Your fastest-ever recorded effort at each standard race distance">?</span></p>
         <table class="pr-table">
             <thead>
                 <tr>

@@ -1,3 +1,4 @@
+{{define "title"}}Overview — Stride{{end}}
 {{define "content"}}
 <div class="overview-header">
     <div>
@@ -14,7 +15,7 @@
     </div>
     <div class="stat-card">
         <span class="stat-label">Total Distance</span>
-        <span class="stat-value">{{printf "%.0f" (divFloat .Stats.TotalDistance 1000)}} <small>km</small></span>
+        <span class="stat-value"><span data-m="{{.Stats.TotalDistance}}">{{printf "%.0f" (divFloat .Stats.TotalDistance 1000)}} km</span></span>
     </div>
     <div class="stat-card">
         <span class="stat-label">Total Elevation</span>
@@ -26,27 +27,28 @@
     </div>
     <div class="stat-card">
         <span class="stat-label">This Year</span>
-        <span class="stat-value">{{printf "%.0f" (divFloat .Stats.ThisYearDistance 1000)}} <small>km</small></span>
+        <span class="stat-value"><span data-m="{{.Stats.ThisYearDistance}}">{{printf "%.0f" (divFloat .Stats.ThisYearDistance 1000)}} km</span></span>
     </div>
 </div>
 
 <div class="stat-grid" id="streak-grid">
-    <div class="stat-card">
+    <div class="stat-card" title="Consecutive days you have logged at least one activity">
         <span class="stat-label">Current Streak</span>
         <span class="stat-value" id="streak-current">—</span>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" title="Your longest consecutive-day run ever">
         <span class="stat-label">Longest Streak</span>
         <span class="stat-value" id="streak-longest">—</span>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" title="Distinct days you trained so far this calendar month">
         <span class="stat-label">Active This Month</span>
         <span class="stat-value" id="streak-month">—</span>
     </div>
-    <div class="stat-card">
-        <span class="stat-label">Last 30 Days</span>
+    <div class="stat-card" title="Percentage of the past 30 days with at least one activity">
+        <span class="stat-label">Consistency</span>
         <span class="stat-value" id="streak-consistency">—</span>
         <div class="consistency-bar"><div class="consistency-fill" id="consistency-fill"></div></div>
+        <span class="stat-note">days active in the last 30</span>
     </div>
 </div>
 
@@ -89,6 +91,7 @@
     <div class="card-header">
         <h2>Activity Heatmap</h2>
     </div>
+    <p class="card-subtitle">Each square is one day. Darker = more activity logged. Hover for details.</p>
     <div id="heatmap-svg" style="overflow-x:auto;"></div>
 </section>
 

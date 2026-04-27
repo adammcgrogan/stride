@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stride</title>
+    <title>{{block "title" .}}Stride{{end}}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -58,7 +58,7 @@
             </a>
             <a href="/fitness" class="nav-link">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
                 </svg>
                 Fitness
             </a>
@@ -96,17 +96,19 @@
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
                     </svg>
                 </button>
-                <button class="units-toggle" id="units-toggle" title="Toggle km/mi">km</button>
+                <button class="units-toggle" id="units-toggle" title="Switch between kilometres and miles">km</button>
                 <button class="sync-btn"
                         hx-post="/sync"
                         hx-swap="none"
                         hx-disabled-elt="this"
-                        hx-on::after-request="if(event.detail.successful) htmx.trigger('#sync-status', 'refresh')">
+                        title="Pull latest activities from Strava"
+                        hx-on::before-request="this.querySelector('.sync-btn-text').textContent='Syncing…'"
+                        hx-on::after-request="this.querySelector('.sync-btn-text').textContent='Sync now'; if(event.detail.successful) htmx.trigger('#sync-status', 'refresh')">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sync-icon">
                         <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
                         <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
                     </svg>
-                    Sync now
+                    <span class="sync-btn-text">Sync now</span>
                 </button>
             </div>
         </div>
