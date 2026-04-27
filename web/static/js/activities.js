@@ -13,6 +13,42 @@ function sportPillClass(sport) {
     return 'sport-pill--default';
 }
 
+// ── performance scores ────────────────────────────────────────────────────────
+
+let paceScores = {};  // keyed by activity ID
+
+function buildScores(activities) {
+    // Group best (fastest) pace per sport type — pace in s/m, lower = faster
+    const bestPace = {};  // sport → min s/m seen
+    for (const a of activities) {
+        if (!a.Distance || !a.MovingTime || a.Distance < 400) continue;
+        const pace = a.MovingTime / a.Distance;
+        if (bestPace[a.SportType] === undefined || pace < bestPace[a.SportType]) {
+            bestPace[a.SportType] = pace;
+        }
+    }
+
+    paceScores = {};
+    for (const a of activities) {
+        if (!a.Distance || !a.MovingTime || a.Distance < 400) continue;
+        const best = bestPace[a.SportType];
+        if (!best) continue;
+        const pace  = a.MovingTime / a.Distance;
+        // score: 100 = matches personal best pace, falls off as pace worsens
+        const score = Math.min(100, Math.round(best / pace * 100));
+        paceScores[a.ID] = score;
+    }
+}
+
+function scoreHtml(activityId) {
+    const score = paceScores[activityId];
+    if (score === undefined) return '<td>—</td>';
+    const cls = score >= 90 ? 'act-score act-score--top'
+              : score >= 70 ? 'act-score act-score--good'
+              : 'act-score';
+    return `<td><span class="${cls}">${score}</span></td>`;
+}
+
 function escapeHtml(str) {
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -66,7 +102,7 @@ function renderTable() {
     const tbody     = document.querySelector('#act-table tbody');
 
     if (!pageItems.length) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999">No activities found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#999">No activities found.</td></tr>';
         return;
     }
 
@@ -79,6 +115,7 @@ function renderTable() {
             <td>${fmtTime(a.MovingTime)}</td>
             <td>${Math.round(a.TotalElevationGain)} m</td>
             <td>${a.StartDateLocal.slice(0, 10)}</td>
+            ${scoreHtml(a.ID)}
         </tr>
     `).join('');
 
@@ -174,6 +211,7 @@ document.getElementById('act-search').addEventListener('input', render);
     const resp = await fetch('/api/activities?limit=10000');
     if (!resp.ok) return;
     allActivities = await resp.json() || [];
+    buildScores(allActivities);
 
     const sports = [...new Set(allActivities.map(a => a.SportType))].sort();
     const select = document.getElementById('sport-filter');
