@@ -1,3 +1,4 @@
+{{define "title"}}{{.Name}} — Stride{{end}}
 {{define "content"}}
 <div class="overview-header">
     <div>
@@ -38,7 +39,7 @@
 <script src="https://unpkg.com/@mapbox/polyline@1.2.1/src/polyline.js"></script>
 <script>
     const map = L.map('map');
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
         attribution: '© <a href="https://carto.com/">CARTO</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         subdomains: 'abc'
     }).addTo(map);
@@ -46,24 +47,45 @@
     const line = L.polyline(coords, {color: '#FC4C02', weight: 3}).addTo(map);
     map.fitBounds(line.getBounds());
 </script>
+{{else}}
+<section class="card no-gps-card">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);flex-shrink:0">
+        <line x1="1" y1="1" x2="23" y2="23"/>
+        <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+        <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+        <path d="M10.71 5.05A16 16 0 0 1 22.56 9"/>
+        <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+        <line x1="12" y1="20" x2="12.01" y2="20"/>
+    </svg>
+    <span>No GPS data for this activity — it was recorded indoors or entered manually.</span>
+</section>
 {{end}}
+
+<section class="card" id="splits-section" style="display:none">
+    <h2>Splits</h2>
+    <div id="splits-chart" style="min-height:220px"></div>
+    <div id="splits-table-wrap" style="margin-top:1.25rem"></div>
+</section>
 
 <section class="card">
     <h2>Details</h2>
     <dl>
         <dt>Date</dt><dd>{{formatDate .StartDateLocal}}</dd>
-        <dt>Elapsed Time</dt><dd>{{formatDuration .ElapsedTime}}{{with restTime .ElapsedTime .MovingTime}} <small style="opacity:.6">({{.}} stopped)</small>{{end}}</dd>
+        <dt title="Wall-clock time from start to finish, including any pauses">Elapsed Time</dt><dd>{{formatDuration .ElapsedTime}}{{with restTime .ElapsedTime .MovingTime}} <small style="opacity:.6">({{.}} paused)</small>{{end}}</dd>
         {{if gt .MaxSpeed 0.0}}<dt>Max Speed</dt><dd><span data-mps-max="{{.MaxSpeed}}">{{formatMaxSpeed .MaxSpeed}}</span></dd>{{end}}
         {{if gt .AverageHeartrate 0.0}}<dt>Avg HR</dt><dd>{{formatFloat .AverageHeartrate}} <small>bpm</small></dd>{{end}}
         {{if gt .MaxHeartrate 0.0}}<dt>Max HR</dt><dd>{{formatFloat .MaxHeartrate}} <small>bpm</small></dd>{{end}}
         {{if gt .AverageCadence 0.0}}<dt>Avg Cadence</dt><dd>{{formatFloat .AverageCadence}} <small>rpm</small></dd>{{end}}
         {{if gt .AverageWatts 0.0}}<dt>Avg Power</dt><dd>{{formatFloat .AverageWatts}} <small>W</small></dd>{{end}}
-        {{if gt .Kilojoules 0.0}}<dt>Calories</dt><dd>{{formatFloat .Kilojoules}} <small>kJ</small></dd>{{end}}
-        {{if gt .SufferScore 0.0}}<dt>Suffer Score</dt><dd>{{formatFloat .SufferScore}}</dd>{{end}}
+        {{if gt .Kilojoules 0.0}}<dt title="Energy output recorded by a power meter or estimated by Strava">Energy</dt><dd>{{formatFloat .Kilojoules}} <small>kJ</small></dd>{{end}}
+        {{if gt .SufferScore 0.0}}<dt title="Strava Relative Effort — a measure of how hard this activity felt based on your heart rate data">Relative Effort</dt><dd>{{formatFloat .SufferScore}}</dd>{{end}}
         {{if ge .WeatherCode 0}}
         <dt>Weather</dt>
         <dd>{{weatherDesc .WeatherCode}} · {{printf "%.0f" .WeatherTemp}}°C · {{printf "%.0f" .WeatherWind}} km/h wind{{if gt .WeatherPrec 0.0}} · {{printf "%.1f" .WeatherPrec}}mm precip{{end}}</dd>
         {{end}}
     </dl>
 </section>
+<script>const ACTIVITY_ID = {{.ID}};</script>
+<script src="/static/js/activity.js"></script>
 {{end}}

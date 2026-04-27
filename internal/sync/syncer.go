@@ -82,6 +82,20 @@ func (s *Syncer) fetchWeatherForAthlete(athleteID int64) {
 	}
 }
 
+// GetClientForAthlete returns an authenticated Strava client for the given athlete,
+// refreshing the token first if needed.
+func (s *Syncer) GetClientForAthlete(athleteID int64) (*strava.Client, error) {
+	athlete, err := s.db.GetAthlete(athleteID)
+	if err != nil {
+		return nil, err
+	}
+	token, err := s.getValidAccessToken(athlete)
+	if err != nil {
+		return nil, err
+	}
+	return strava.NewClient(token), nil
+}
+
 // getValidAccessToken returns the athlete's current access token, refreshing it
 // first if it has expired or is about to expire.
 func (s *Syncer) getValidAccessToken(athlete *db.AthleteRow) (string, error) {

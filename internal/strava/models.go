@@ -32,6 +32,19 @@ type Activity struct {
 	SufferScore        float64   `json:"suffer_score"`
 	Map                Map       `json:"map"`
 	StartLatLng        []float64 `json:"start_latlng"`
+	SplitsMetric       []Split   `json:"splits_metric"`
+	SplitsStandard     []Split   `json:"splits_standard"`
+}
+
+type Split struct {
+	Distance            float64 `json:"distance"`
+	ElapsedTime         int     `json:"elapsed_time"`
+	MovingTime          int     `json:"moving_time"`
+	ElevationDifference float64 `json:"elevation_difference"`
+	SplitIndex          int     `json:"split"`
+	AverageSpeed        float64 `json:"average_speed"`
+	AverageHeartrate    float64 `json:"average_heartrate"`
+	PaceZone            int     `json:"pace_zone"`
 }
 
 type Map struct {

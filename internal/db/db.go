@@ -96,4 +96,18 @@ var migrations = []string{
 	`ALTER TABLE activities ADD COLUMN weather_wind  REAL    NOT NULL DEFAULT 0`,
 	`ALTER TABLE activities ADD COLUMN weather_precip REAL   NOT NULL DEFAULT 0`,
 	`ALTER TABLE activities ADD COLUMN weather_code  INTEGER NOT NULL DEFAULT -1`,
+	`ALTER TABLE activities ADD COLUMN splits_fetched INTEGER NOT NULL DEFAULT 0`,
+	`CREATE TABLE IF NOT EXISTS activity_splits (
+		activity_id   INTEGER NOT NULL,
+		split_index   INTEGER NOT NULL,
+		unit          TEXT    NOT NULL DEFAULT 'metric',
+		distance      REAL    NOT NULL DEFAULT 0,
+		elapsed_time  INTEGER NOT NULL DEFAULT 0,
+		moving_time   INTEGER NOT NULL DEFAULT 0,
+		elev_diff     REAL    NOT NULL DEFAULT 0,
+		average_speed REAL    NOT NULL DEFAULT 0,
+		average_hr    REAL    NOT NULL DEFAULT 0,
+		pace_zone     INTEGER NOT NULL DEFAULT 0,
+		PRIMARY KEY (activity_id, split_index, unit)
+	)`,
 }
