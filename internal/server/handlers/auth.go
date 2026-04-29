@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"stride/internal/strava"
@@ -29,12 +28,6 @@ func (h *Handler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "db error", http.StatusInternalServerError)
 		return
 	}
-
-	go func() {
-		if err := h.syncer.SyncAthlete(token.Athlete.ID); err != nil {
-			log.Printf("initial sync error: %v", err)
-		}
-	}()
 
 	h.setAthleteCookie(w, token.Athlete.ID)
 	http.Redirect(w, r, "/", http.StatusSeeOther)

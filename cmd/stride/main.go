@@ -23,7 +23,6 @@ func main() {
 	}
 
 	syncer := sync.New(cfg, database)
-	go syncer.Start()
 
 	srv := server.New(cfg, database, syncer)
 	log.Printf("listening on %s", cfg.Addr)
