@@ -1,4 +1,8 @@
-# Stride
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="web/static/img/stride-logo-white-transparent.svg">
+  <source media="(prefers-color-scheme: light)" srcset="web/static/img/stride-logo-dark-transparent.svg">
+  <img src="web/static/img/stride-logo-dark-transparent.svg" alt="Stride" height="52">
+</picture>
 
 A personal Strava activity tracker that pulls your runs into a local dashboard with stats, records, fitness trends, and goal tracking.
 
@@ -15,7 +19,7 @@ Stride connects to your Strava account via OAuth and continuously syncs your act
 - **Map** — visualise your routes on a map
 - **Predict** — race time predictor based on your training
 
-Activities sync automatically every 30 minutes in the background, or you can trigger a manual sync from the UI.
+Activities can be synced manually from the UI.
 
 ## Requirements
 
