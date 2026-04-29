@@ -28,8 +28,8 @@ var labelCanonicalM = map[string]float64{
 type PredictSeed struct {
 	Label        string  `json:"Label"`
 	SportType    string  `json:"SportType"`
-	DistanceM    float64 `json:"DistanceM"`   // actual GPS distance — used for Riegel
-	CanonicalM   float64 `json:"CanonicalM"`  // exact label distance — used for isSeed check
+	DistanceM    float64 `json:"DistanceM"`  // actual GPS distance — used for Riegel
+	CanonicalM   float64 `json:"CanonicalM"` // exact label distance — used for isSeed check
 	Seconds      int     `json:"Seconds"`
 	ActivityID   int64   `json:"ActivityID"`
 	ActivityName string  `json:"ActivityName"`
