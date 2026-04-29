@@ -1,7 +1,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="web/static/img/stride-logo-white-transparent.svg">
   <source media="(prefers-color-scheme: light)" srcset="web/static/img/stride-logo-dark-transparent.svg">
-  <img src="web/static/img/stride-logo-dark-transparent.svg" alt="Stride" height="52">
+  <img src="web/static/img/stride-logo-dark-transparent.svg" alt="Stride" height="80">
 </picture>
 
 A personal Strava activity tracker that pulls your runs into a local dashboard with stats, records, fitness trends, and goal tracking.
