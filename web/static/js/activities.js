@@ -107,8 +107,8 @@ function renderTable() {
     }
 
     tbody.innerHTML = pageItems.map(a => `
-        <tr class="act-row" data-href="/activities/${a.ID}">
-            <td><a href="/activities/${a.ID}">${escapeHtml(a.Name)}</a></td>
+        <tr class="act-row" data-href="/activities/${a.ID}" tabindex="0" role="link" aria-label="${escapeHtml(a.Name)}">
+            <td><a href="/activities/${a.ID}" tabindex="-1">${escapeHtml(a.Name)}</a></td>
             <td><span class="sport-pill ${sportPillClass(a.SportType)}">${escapeHtml(a.SportType)}</span></td>
             <td>${fmtKm(a.Distance)}</td>
             <td class="act-pace">${fmtPaceFromActivity(a)}</td>
@@ -122,6 +122,12 @@ function renderTable() {
     tbody.querySelectorAll('.act-row').forEach(row => {
         row.addEventListener('click', e => {
             if (e.target.tagName !== 'A') window.location.href = row.dataset.href;
+        });
+        row.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                window.location.href = row.dataset.href;
+            }
         });
     });
 }

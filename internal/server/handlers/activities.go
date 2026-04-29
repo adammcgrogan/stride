@@ -14,19 +14,15 @@ type activityDetailData struct {
 }
 
 func (h *Handler) Activities(w http.ResponseWriter, r *http.Request) {
-	if h.athleteIDFromCookie(r) == 0 {
-		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+	if _, ok := h.requirePage(w, r); !ok {
 		return
 	}
-
-	tmpl := parseTemplates("templates/layout.html", "templates/activities.html")
-	tmpl.ExecuteTemplate(w, "layout", nil)
+	h.templates["activities"].ExecuteTemplate(w, "layout", nil)
 }
 
 func (h *Handler) ActivityDetail(w http.ResponseWriter, r *http.Request) {
-	athleteID := h.athleteIDFromCookie(r)
-	if athleteID == 0 {
-		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+	athleteID, ok := h.requirePage(w, r)
+	if !ok {
 		return
 	}
 
@@ -53,7 +49,8 @@ func (h *Handler) ActivityDetail(w http.ResponseWriter, r *http.Request) {
 		similar = nil
 	}
 
-	data := activityDetailData{ActivityRow: activity, SimilarRuns: similar}
-	tmpl := parseTemplates("templates/layout.html", "templates/activity.html")
-	tmpl.ExecuteTemplate(w, "layout", data)
+	h.templates["activity"].ExecuteTemplate(w, "layout", activityDetailData{
+		ActivityRow: activity,
+		SimilarRuns: similar,
+	})
 }

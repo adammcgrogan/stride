@@ -1,6 +1,17 @@
 package handlers
 
-import "net/http"
+import (
+	"net/http"
+
+	"stride/internal/db"
+)
+
+type dashboardData struct {
+	Athlete *db.AthleteRow
+	Stats   *db.Stats
+	Sports  []db.SportStat
+	Recent  []db.ActivityRow
+}
 
 func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
@@ -8,9 +19,8 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	athleteID := h.athleteIDFromCookie(r)
-	if athleteID == 0 {
-		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+	athleteID, ok := h.requirePage(w, r)
+	if !ok {
 		return
 	}
 
@@ -38,11 +48,10 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl := parseTemplates("templates/layout.html", "templates/dashboard.html")
-	tmpl.ExecuteTemplate(w, "layout", map[string]any{
-		"Athlete": athlete,
-		"Stats":   stats,
-		"Sports":  sports,
-		"Recent":  recent,
+	h.templates["dashboard"].ExecuteTemplate(w, "layout", dashboardData{
+		Athlete: athlete,
+		Stats:   stats,
+		Sports:  sports,
+		Recent:  recent,
 	})
 }

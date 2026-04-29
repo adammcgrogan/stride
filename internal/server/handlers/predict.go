@@ -36,10 +36,13 @@ type PredictSeed struct {
 	Date         string  `json:"Date"`
 }
 
+type predictData struct {
+	SeedsJSON template.JS
+}
+
 func (h *Handler) Predict(w http.ResponseWriter, r *http.Request) {
-	athleteID := h.athleteIDFromCookie(r)
-	if athleteID == 0 {
-		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+	athleteID, ok := h.requirePage(w, r)
+	if !ok {
 		return
 	}
 
@@ -81,8 +84,7 @@ func (h *Handler) Predict(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl := parseTemplates("templates/layout.html", "templates/predict.html")
-	tmpl.ExecuteTemplate(w, "layout", map[string]any{
-		"SeedsJSON": template.JS(seedsJSON),
+	h.templates["predict"].ExecuteTemplate(w, "layout", predictData{
+		SeedsJSON: template.JS(seedsJSON),
 	})
 }

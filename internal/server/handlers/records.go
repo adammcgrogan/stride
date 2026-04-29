@@ -1,11 +1,18 @@
 package handlers
 
-import "net/http"
+import (
+	"net/http"
+
+	"stride/internal/db"
+)
+
+type recordsData struct {
+	Records []db.SportRecords
+}
 
 func (h *Handler) Records(w http.ResponseWriter, r *http.Request) {
-	athleteID := h.athleteIDFromCookie(r)
-	if athleteID == 0 {
-		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+	athleteID, ok := h.requirePage(w, r)
+	if !ok {
 		return
 	}
 
@@ -15,8 +22,5 @@ func (h *Handler) Records(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl := parseTemplates("templates/layout.html", "templates/records.html")
-	tmpl.ExecuteTemplate(w, "layout", map[string]any{
-		"Records": records,
-	})
+	h.templates["records"].ExecuteTemplate(w, "layout", recordsData{Records: records})
 }

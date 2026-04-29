@@ -4,154 +4,86 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"stride/internal/config"
 	"stride/internal/db"
+	"stride/internal/format"
 	"stride/internal/sync"
 	"stride/web"
 )
 
 type Handler struct {
-	cfg    *config.Config
-	db     *db.DB
-	syncer *sync.Syncer
+	cfg       *config.Config
+	db        *db.DB
+	syncer    *sync.Syncer
+	templates map[string]*template.Template
 }
 
 func New(cfg *config.Config, db *db.DB, syncer *sync.Syncer) *Handler {
-	return &Handler{cfg: cfg, db: db, syncer: syncer}
+	h := &Handler{cfg: cfg, db: db, syncer: syncer}
+	h.templates = map[string]*template.Template{
+		"dashboard":  parseTemplates("templates/layout.html", "templates/dashboard.html"),
+		"activities": parseTemplates("templates/layout.html", "templates/activities.html"),
+		"activity":   parseTemplates("templates/layout.html", "templates/activity.html"),
+		"stats":      parseTemplates("templates/layout.html", "templates/stats.html"),
+		"goals":      parseTemplates("templates/layout.html", "templates/goals.html"),
+		"predict":    parseTemplates("templates/layout.html", "templates/predict.html"),
+		"records":    parseTemplates("templates/layout.html", "templates/records.html"),
+		"fitness":    parseTemplates("templates/layout.html", "templates/fitness.html"),
+		"map":        parseTemplates("templates/layout.html", "templates/map.html"),
+		"share":      parseTemplates("templates/share_layout.html", "templates/share.html"),
+	}
+	return h
 }
 
 var templateFuncs = template.FuncMap{
-	"divFloat": func(a, b float64) float64 { return a / b },
-	"fmtKm": func(meters float64) string {
-		return fmt.Sprintf("%.1f", meters/1000)
-	},
-	"formatRunTime": func(totalSeconds int) string {
-		if totalSeconds == 0 {
-			return "—"
-		}
-		h := totalSeconds / 3600
-		m := (totalSeconds % 3600) / 60
-		s := totalSeconds % 60
-		if h > 0 {
-			return fmt.Sprintf("%d:%02d:%02d", h, m, s)
-		}
-		return fmt.Sprintf("%d:%02d", m, s)
-	},
-	"formatDate": func(dateStr string) string {
-		if len(dateStr) < 10 {
-			return dateStr
-		}
-		t, err := time.Parse("2006-01-02", dateStr[:10])
-		if err != nil {
-			return dateStr[:10]
-		}
-		return t.Format("Jan 2, 2006")
-	},
-	"formatDuration": func(totalSeconds int) string {
-		if totalSeconds == 0 {
-			return "—"
-		}
-		hours := totalSeconds / 3600
-		minutes := (totalSeconds % 3600) / 60
-		if hours > 0 {
-			return fmt.Sprintf("%dh %dm", hours, minutes)
-		}
-		return fmt.Sprintf("%dm", minutes)
-	},
-	"formatPace": func(metersPerSecond float64) string {
-		if metersPerSecond == 0 {
-			return "—"
-		}
-		secondsPerKm := 1000.0 / metersPerSecond
-		minutes := int(secondsPerKm) / 60
-		seconds := int(secondsPerKm) % 60
-		return fmt.Sprintf("%d:%02d /km", minutes, seconds)
-	},
-	"formatFloat": func(f float64) string {
-		if f == 0 {
-			return "—"
-		}
-		return fmt.Sprintf("%.0f", f)
-	},
-	"sportClass": func(sport string) string {
-		switch sport {
-		case "Run", "TrailRun", "VirtualRun", "Walk", "Hike":
-			return "records-sport-badge--running"
-		case "Ride", "VirtualRide", "GravelRide", "MountainBikeRide", "EBikeRide":
-			return "records-sport-badge--cycling"
-		case "Swim", "OpenWaterSwim":
-			return "records-sport-badge--swimming"
-		default:
-			return "records-sport-badge--default"
-		}
-	},
-	"formatMaxSpeed": func(metersPerSecond float64) string {
-		if metersPerSecond == 0 {
-			return "—"
-		}
-		return fmt.Sprintf("%.1f km/h", metersPerSecond*3.6)
-	},
-	"restTime": func(elapsed, moving int) string {
-		rest := elapsed - moving
-		if rest <= 0 {
-			return ""
-		}
-		hours := rest / 3600
-		minutes := (rest % 3600) / 60
-		seconds := rest % 60
-		if hours > 0 {
-			return fmt.Sprintf("%dh %dm", hours, minutes)
-		}
-		if minutes > 0 {
-			return fmt.Sprintf("%dm %ds", minutes, seconds)
-		}
-		return fmt.Sprintf("%ds", seconds)
-	},
-	"fullName": func(first, last string) string {
-		if first == "" && last == "" {
-			return ""
-		}
-		if last == "" {
-			return first
-		}
-		if first == "" {
-			return last
-		}
-		return first + " " + last
-	},
-	"weatherDesc": func(code int) string {
-		switch {
-		case code == 0:
-			return "Clear sky"
-		case code <= 3:
-			return "Partly cloudy"
-		case code <= 48:
-			return "Foggy"
-		case code <= 57:
-			return "Drizzle"
-		case code <= 67:
-			return "Rain"
-		case code <= 77:
-			return "Snow"
-		case code <= 82:
-			return "Showers"
-		case code <= 86:
-			return "Snow showers"
-		default:
-			return "Thunderstorm"
-		}
-	},
+	"divFloat":      func(a, b float64) float64 { return a / b },
+	"fmtKm":         format.DistanceKm,
+	"formatRunTime": format.RunTime,
+	"formatDate":    format.Date,
+	"formatDuration": format.Duration,
+	"formatPace":    format.Pace,
+	"formatFloat":   format.Float,
+	"sportClass":    format.SportBadgeClass,
+	"formatMaxSpeed": format.MaxSpeed,
+	"restTime":      format.RestTime,
+	"fullName":      format.FullName,
+	"weatherDesc":   format.WeatherDesc,
 }
 
 func parseTemplates(files ...string) *template.Template {
 	return template.Must(template.New("").Funcs(templateFuncs).ParseFS(web.FS, files...))
+}
+
+// requirePage checks authentication for page handlers, redirecting to login on failure.
+// Returns (athleteID, true) when authenticated.
+func (h *Handler) requirePage(w http.ResponseWriter, r *http.Request) (int64, bool) {
+	id := h.athleteIDFromCookie(r)
+	if id == 0 {
+		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+		return 0, false
+	}
+	return id, true
+}
+
+// requireAPI checks authentication for API handlers, returning 401 on failure.
+// Returns (athleteID, true) when authenticated.
+func (h *Handler) requireAPI(w http.ResponseWriter, r *http.Request) (int64, bool) {
+	id := h.athleteIDFromCookie(r)
+	if id == 0 {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return 0, false
+	}
+	return id, true
+}
+
+// pathID parses the "id" path value as an int64.
+func pathID(r *http.Request) (int64, error) {
+	return strconv.ParseInt(r.PathValue("id"), 10, 64)
 }
 
 // athleteIDFromCookie reads and verifies the session cookie.

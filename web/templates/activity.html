@@ -102,9 +102,11 @@
         </thead>
         <tbody>
             {{range .SimilarRuns}}
-            <tr class="act-row" onclick="location.href='/activities/{{.ID}}'">
+            <tr class="act-row" tabindex="0" role="link" aria-label="{{.Name}}"
+                onclick="location.href='/activities/{{.ID}}'"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();location.href='/activities/{{.ID}}'}">
                 <td class="pr-date">{{formatDate .StartDateLocal}}</td>
-                <td><a href="/activities/{{.ID}}" class="pr-activity-link" onclick="event.stopPropagation()">{{.Name}}</a></td>
+                <td><a href="/activities/{{.ID}}" class="pr-activity-link" tabindex="-1" onclick="event.stopPropagation()">{{.Name}}</a></td>
                 <td class="num-col act-pace"><span data-m="{{.Distance}}">{{printf "%.2f" (divFloat .Distance 1000)}} km</span></td>
                 <td class="num-col act-pace">{{formatDuration .MovingTime}}</td>
                 <td class="num-col act-pace"><span data-mps="{{.AverageSpeed}}">{{formatPace .AverageSpeed}}</span></td>

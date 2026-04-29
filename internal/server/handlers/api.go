@@ -8,9 +8,8 @@ import (
 )
 
 func (h *Handler) APIGetSettings(w http.ResponseWriter, r *http.Request) {
-	athleteID := h.athleteIDFromCookie(r)
-	if athleteID == 0 {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	athleteID, ok := h.requireAPI(w, r)
+	if !ok {
 		return
 	}
 	maxHR, err := h.db.GetMaxHR(athleteID)
@@ -23,9 +22,8 @@ func (h *Handler) APIGetSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) APIPatchSettings(w http.ResponseWriter, r *http.Request) {
-	athleteID := h.athleteIDFromCookie(r)
-	if athleteID == 0 {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	athleteID, ok := h.requireAPI(w, r)
+	if !ok {
 		return
 	}
 	var body struct {
@@ -43,9 +41,8 @@ func (h *Handler) APIPatchSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) APIPolylines(w http.ResponseWriter, r *http.Request) {
-	athleteID := h.athleteIDFromCookie(r)
-	if athleteID == 0 {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	athleteID, ok := h.requireAPI(w, r)
+	if !ok {
 		return
 	}
 	polylines, err := h.db.GetPolylines(athleteID)
@@ -58,9 +55,8 @@ func (h *Handler) APIPolylines(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) APIActivities(w http.ResponseWriter, r *http.Request) {
-	athleteID := h.athleteIDFromCookie(r)
-	if athleteID == 0 {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	athleteID, ok := h.requireAPI(w, r)
+	if !ok {
 		return
 	}
 
@@ -83,33 +79,18 @@ func (h *Handler) APIActivities(w http.ResponseWriter, r *http.Request) {
 // APISplits returns the splits for a single activity, fetching from Strava and
 // caching in the DB on first access.
 func (h *Handler) APISplits(w http.ResponseWriter, r *http.Request) {
-	athleteID := h.athleteIDFromCookie(r)
-	if athleteID == 0 {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	athleteID, ok := h.requireAPI(w, r)
+	if !ok {
 		return
 	}
 
-	activityID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	activityID, err := pathID(r)
 	if err != nil {
 		http.Error(w, "bad id", http.StatusBadRequest)
 		return
 	}
 
-	needsFetch := func() bool {
-		fetched, err := h.db.SplitsFetched(activityID)
-		if err != nil || !fetched {
-			return true
-		}
-		// If the cache exists but has no valid splits, reset and re-fetch.
-		existing, err := h.db.GetSplits(activityID)
-		if err != nil || len(existing) == 0 {
-			_ = h.db.ResetSplitsFetched(activityID)
-			return true
-		}
-		return false
-	}
-
-	if needsFetch() {
+	if h.splitsNeedFetch(activityID) {
 		client, err := h.syncer.GetClientForAthlete(athleteID)
 		if err != nil {
 			http.Error(w, "auth error", http.StatusInternalServerError)
@@ -144,12 +125,25 @@ func (h *Handler) APISplits(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(splits)
 }
 
+func (h *Handler) splitsNeedFetch(activityID int64) bool {
+	fetched, err := h.db.SplitsFetched(activityID)
+	if err != nil || !fetched {
+		return true
+	}
+	// If the cache exists but has no valid splits, reset and re-fetch.
+	existing, err := h.db.GetSplits(activityID)
+	if err != nil || len(existing) == 0 {
+		_ = h.db.ResetSplitsFetched(activityID)
+		return true
+	}
+	return false
+}
+
 // APIProgress returns a lightweight list of all activities (date, sport, distance, time)
 // used by the best-efforts progression chart on the Records page.
 func (h *Handler) APIProgress(w http.ResponseWriter, r *http.Request) {
-	athleteID := h.athleteIDFromCookie(r)
-	if athleteID == 0 {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	athleteID, ok := h.requireAPI(w, r)
+	if !ok {
 		return
 	}
 	activities, err := h.db.GetActivitiesForProgress(athleteID)

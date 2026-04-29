@@ -11,10 +11,23 @@ import (
 	"stride/internal/db"
 )
 
+var validMetrics = map[string]bool{
+	"distance": true, "moving_time": true, "elevation": true,
+	"count": true, "kilojoules": true, "suffer_score": true,
+}
+
+var validPeriods = map[string]bool{
+	"week": true, "month": true, "year": true, "all": true,
+}
+
+type goalsData struct {
+	GoalsJSON template.JS
+	Sports    []db.SportStat
+}
+
 func (h *Handler) Goals(w http.ResponseWriter, r *http.Request) {
-	athleteID := h.athleteIDFromCookie(r)
-	if athleteID == 0 {
-		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+	athleteID, ok := h.requirePage(w, r)
+	if !ok {
 		return
 	}
 
@@ -39,17 +52,15 @@ func (h *Handler) Goals(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl := parseTemplates("templates/layout.html", "templates/goals.html")
-	tmpl.ExecuteTemplate(w, "layout", map[string]any{
-		"GoalsJSON": template.JS(goalsJSON),
-		"Sports":    sports,
+	h.templates["goals"].ExecuteTemplate(w, "layout", goalsData{
+		GoalsJSON: template.JS(goalsJSON),
+		Sports:    sports,
 	})
 }
 
 func (h *Handler) CreateGoal(w http.ResponseWriter, r *http.Request) {
-	athleteID := h.athleteIDFromCookie(r)
-	if athleteID == 0 {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	athleteID, ok := h.requireAPI(w, r)
+	if !ok {
 		return
 	}
 
@@ -73,12 +84,6 @@ func (h *Handler) CreateGoal(w http.ResponseWriter, r *http.Request) {
 		Target:    target,
 	}
 
-	validMetrics := map[string]bool{
-		"distance": true, "moving_time": true, "elevation": true,
-		"count": true, "kilojoules": true, "suffer_score": true,
-	}
-	validPeriods := map[string]bool{"week": true, "month": true, "year": true, "all": true}
-
 	if goal.Title == "" || !validMetrics[goal.Metric] || !validPeriods[goal.Period] {
 		http.Error(w, "invalid fields", http.StatusBadRequest)
 		return
@@ -93,13 +98,12 @@ func (h *Handler) CreateGoal(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeleteGoal(w http.ResponseWriter, r *http.Request) {
-	athleteID := h.athleteIDFromCookie(r)
-	if athleteID == 0 {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	athleteID, ok := h.requireAPI(w, r)
+	if !ok {
 		return
 	}
 
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	id, err := pathID(r)
 	if err != nil {
 		http.Error(w, "bad id", http.StatusBadRequest)
 		return

@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"stride/internal/card"
 	"stride/internal/db"
+	"stride/internal/format"
 )
 
 func generateToken() (string, error) {
@@ -24,13 +24,12 @@ func generateToken() (string, error) {
 // If the activity already has a token, the existing one is returned unchanged.
 // POST /activities/{id}/share
 func (h *Handler) ShareEnable(w http.ResponseWriter, r *http.Request) {
-	athleteID := h.athleteIDFromCookie(r)
-	if athleteID == 0 {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	athleteID, ok := h.requireAPI(w, r)
+	if !ok {
 		return
 	}
 
-	activityID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	activityID, err := pathID(r)
 	if err != nil {
 		http.Error(w, "invalid id", http.StatusBadRequest)
 		return
@@ -62,13 +61,12 @@ func (h *Handler) ShareEnable(w http.ResponseWriter, r *http.Request) {
 // ShareDisable revokes the share token, making the activity private again.
 // DELETE /activities/{id}/share
 func (h *Handler) ShareDisable(w http.ResponseWriter, r *http.Request) {
-	athleteID := h.athleteIDFromCookie(r)
-	if athleteID == 0 {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	athleteID, ok := h.requireAPI(w, r)
+	if !ok {
 		return
 	}
 
-	activityID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	activityID, err := pathID(r)
 	if err != nil {
 		http.Error(w, "invalid id", http.StatusBadRequest)
 		return
@@ -108,9 +106,10 @@ func (h *Handler) ShareView(w http.ResponseWriter, r *http.Request) {
 	}
 	baseURL := fmt.Sprintf("%s://%s", scheme, r.Host)
 
-	data := sharePageData{ActivityRow: activity, BaseURL: baseURL}
-	tmpl := parseTemplates("templates/share_layout.html", "templates/share.html")
-	tmpl.ExecuteTemplate(w, "share_layout", data)
+	h.templates["share"].ExecuteTemplate(w, "share_layout", sharePageData{
+		ActivityRow: activity,
+		BaseURL:     baseURL,
+	})
 }
 
 // ShareCard generates and serves the OG share card PNG.
@@ -128,23 +127,14 @@ func (h *Handler) ShareCard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	athleteName := activity.AthleteFirstname
-	if activity.AthleteLastname != "" {
-		if athleteName != "" {
-			athleteName += " " + activity.AthleteLastname
-		} else {
-			athleteName = activity.AthleteLastname
-		}
-	}
-
 	a := card.Activity{
-		AthleteName: athleteName,
+		AthleteName: format.FullName(activity.AthleteFirstname, activity.AthleteLastname),
 		Name:        activity.Name,
 		SportType:   activity.SportType,
-		Date:        formatDateStr(activity.StartDateLocal),
-		Distance:    fmtDistance(activity.Distance),
-		MovingTime:  fmtDuration(activity.MovingTime),
-		Pace:        fmtPace(activity.AverageSpeed),
+		Date:        format.Date(activity.StartDateLocal),
+		Distance:    format.Distance(activity.Distance),
+		MovingTime:  format.Duration(activity.MovingTime),
+		Pace:        format.Pace(activity.AverageSpeed),
 		Elevation:   fmt.Sprintf("%.0f m", activity.TotalElevationGain),
 	}
 
@@ -153,46 +143,4 @@ func (h *Handler) ShareCard(w http.ResponseWriter, r *http.Request) {
 	if err := card.Render(w, a); err != nil {
 		http.Error(w, "render error", http.StatusInternalServerError)
 	}
-}
-
-func formatDateStr(s string) string {
-	if len(s) < 10 {
-		return s
-	}
-	// reuse the template func logic inline
-	months := []string{"", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
-	var y, m, d int
-	fmt.Sscanf(s[:10], "%d-%d-%d", &y, &m, &d)
-	if m < 1 || m > 12 {
-		return s[:10]
-	}
-	return fmt.Sprintf("%s %d, %d", months[m], d, y)
-}
-
-func fmtDistance(meters float64) string {
-	km := meters / 1000
-	return fmt.Sprintf("%.1f km", km)
-}
-
-func fmtDuration(seconds int) string {
-	if seconds == 0 {
-		return "—"
-	}
-	h := seconds / 3600
-	m := (seconds % 3600) / 60
-	if h > 0 {
-		return fmt.Sprintf("%dh %dm", h, m)
-	}
-	return fmt.Sprintf("%dm", m)
-}
-
-func fmtPace(mps float64) string {
-	if mps == 0 {
-		return "—"
-	}
-	spk := 1000.0 / mps
-	min := int(spk) / 60
-	sec := int(spk) % 60
-	return fmt.Sprintf("%d:%02d /km", min, sec)
 }
