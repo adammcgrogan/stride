@@ -51,8 +51,31 @@
         </table>
         <p class="predictor-accuracy-note">
             Predictions within 2× of your chosen effort are usually accurate to a few percent.
-            Rows further away are rough estimates — treat them as ballpark figures.
+            Rows marked <strong>~</strong> are further away — treat them as rough ballpark figures.
         </p>
+        <details class="explainer-details">
+            <summary>How predictions are calculated</summary>
+            <div class="explainer-details-body">
+                <p>
+                    Times are estimated using <strong>Riegel's formula</strong>:
+                    <code>T₂ = T₁ × (D₂ / D₁)<sup>1.06</sup></code>
+                </p>
+                <p>
+                    Where T₁ is your seed time over distance D₁, and T₂ is the predicted time for distance D₂.
+                    The exponent 1.06 reflects the well-documented fact that pace slows slightly as distance increases.
+                </p>
+                <p>
+                    The formula assumes a maximal, even-paced effort similar to your seed activity.
+                    It does not account for course profile, weather, or heat acclimatisation.
+                    Results are most reliable when the target distance is within 2× of the seed (rows without a ~ prefix).
+                </p>
+                <p>
+                    When your current <strong>form</strong> (TSB from the Fitness page) is negative, predicted times are
+                    adjusted slightly slower to reflect accumulated fatigue. When you are race-fresh (TSB ≥ +20),
+                    times are adjusted 3% faster.
+                </p>
+            </div>
+        </details>
     </section>
 
 </div>

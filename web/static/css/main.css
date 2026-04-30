@@ -1208,6 +1208,61 @@ input[type="search"]::placeholder { color: #c9cdd6; }
 /* Explainer section */
 .fitness-explainer h2 { margin-bottom: 1rem; }
 
+.explainer-details {
+    margin-top: 1.25rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+}
+
+.explainer-details summary {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    user-select: none;
+}
+
+.explainer-details summary::-webkit-details-marker { display: none; }
+
+.explainer-details summary::before {
+    content: '▶';
+    font-size: 0.6rem;
+    transition: transform 0.15s var(--ease-fast);
+    display: inline-block;
+}
+
+.explainer-details[open] summary::before { transform: rotate(90deg); }
+
+.explainer-details-body {
+    margin-top: 0.875rem;
+    font-size: 0.8rem;
+    color: var(--text-2);
+    line-height: 1.65;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.explainer-details-body ol {
+    margin: 0;
+    padding-left: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.explainer-details-body code {
+    font-family: ui-monospace, 'Cascadia Code', monospace;
+    font-size: 0.8em;
+    background: var(--row-hover);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+}
+
 .explainer-grid {
     display: flex;
     flex-direction: column;

@@ -63,23 +63,23 @@
             <div class="explainer-item">
                 <span class="explainer-dot" style="background:#3b82f6"></span>
                 <div>
-                    <strong>Fitness</strong> — How much training you have banked over the past six weeks.
-                    It rises slowly with consistent work and drops when you take time off.
+                    <strong>Fitness (CTL)</strong> — Chronic Training Load: a 42-day exponentially weighted average of your daily training load.
+                    It rises slowly with consistent work and drops gradually when you rest.
                     A steady upward trend means you are genuinely getting fitter.
                 </div>
             </div>
             <div class="explainer-item">
                 <span class="explainer-dot" style="background:#ef4444"></span>
                 <div>
-                    <strong>Fatigue</strong> — How hard your body has been working in the past seven days.
-                    It spikes after a big week and recovers quickly with rest.
-                    When Fatigue is well above Fitness, you are digging a hole.
+                    <strong>Fatigue (ATL)</strong> — Acute Training Load: the same calculation but over just 7 days, so it reacts quickly.
+                    It spikes after a big week and falls fast with rest.
+                    When Fatigue is well above Fitness you are digging a hole.
                 </div>
             </div>
             <div class="explainer-item">
                 <span class="explainer-dot" style="background:#22c55e"></span>
                 <div>
-                    <strong>Form</strong> — Fitness minus Fatigue. This is your readiness to perform right now.
+                    <strong>Form (TSB)</strong> — Training Stress Balance: Fitness minus Fatigue.
                     Negative means you are carrying tiredness. Positive means you have freshened up.
                     Taper before a race to push Form into the +10 to +25 window.
                 </div>
@@ -92,6 +92,18 @@
             <div class="zone-row"><span class="zone-chip zone-peak">+10 to +25</span><span><strong>Race-ready</strong> — Peak form. Schedule your A-race or time trial here.</span></div>
             <div class="zone-row"><span class="zone-chip zone-detrained">&gt; +25</span><span><strong>Detrained</strong> — You have been resting too long. Fitness is beginning to slip away.</span></div>
         </div>
+        <details class="explainer-details">
+            <summary>How training load is calculated</summary>
+            <div class="explainer-details-body">
+                <p>Each activity is converted to a single daily load number using whichever signal is available:</p>
+                <ol>
+                    <li><strong>Relative Effort</strong> (Strava's heart-rate-based suffer score) — used when HR data exists. This is the most accurate signal.</li>
+                    <li><strong>Energy output ÷ 10</strong> (kilojoules from a power meter) — used for cycling when a power meter is present but HR is absent.</li>
+                    <li><strong>50 points per hour</strong> of moving time — a rough fallback when neither HR nor power data is available.</li>
+                </ol>
+                <p>The numbers shown are arbitrary relative units. They are only meaningful compared to your own history — not against other athletes.</p>
+            </div>
+        </details>
     </section>
 
 </div>
